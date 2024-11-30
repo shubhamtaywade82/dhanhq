@@ -20,3 +20,5 @@ gem "vcr", "~> 6.3"
 gem "webmock", "~> 3.24"
 
 gem "yard", "~> 0.9.37"
+
+gem "webrick", "~> 1.9"

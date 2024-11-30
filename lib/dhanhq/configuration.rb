@@ -14,7 +14,7 @@ module Dhanhq
 
     # Initializes the configuration with default values.
     def initialize
-      @base_url = "https://api.dhan.co"
+      @base_url = nil
       @client_id = nil
       @access_token = nil
     end

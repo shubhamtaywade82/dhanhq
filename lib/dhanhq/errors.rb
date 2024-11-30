@@ -2,5 +2,6 @@
 
 module Dhanhq
   # Custom error class for handling DhanHQ gem errors.
-  class DhanhqError < StandardError; end
+  class Error < StandardError; end
+  class ApiError < Error; end
 end

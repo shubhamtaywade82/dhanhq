@@ -9,7 +9,8 @@ Gem::Specification.new do |spec|
   spec.email = ["shubhamtaywade82@gmail.com"]
 
   spec.summary = "Ruby wrapper for the DhanHQ Trading API"
-  spec.description = "A Ruby gem to interact with the DhanHQ Trading API for executing orders, fetching market data, and building algo-based trading applications."
+  spec.description = "A Ruby gem to interact with the DhanHQ Trading API for executing orders" \
+                     ", fetching market data, and building algo-based trading applications."
   spec.homepage = "https://github.com/shubhamtaywade82/dhanhq"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.0.0"

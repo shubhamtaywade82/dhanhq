@@ -10,6 +10,7 @@ require_relative "dhanhq/errors"
 # Require helpers
 require_relative "dhanhq/helpers/constants"
 require_relative "dhanhq/helpers/validator"
+require_relative "dhanhq/websockets/constants"
 
 # Require the apis
 require_relative "dhanhq/base_api"

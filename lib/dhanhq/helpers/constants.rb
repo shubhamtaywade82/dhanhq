@@ -3,6 +3,10 @@
 module Dhanhq
   # A module to hold all constants for the DhanHQ API
   module Constants
+    # CSV URLs for Security ID List
+    COMPACT_CSV_URL = "https://images.dhan.co/api-data/api-scrip-master.csv"
+    DETAILED_CSV_URL = "https://images.dhan.co/api-data/api-scrip-master-detailed.csv"
+
     # Exchange Segments
     NSE = "NSE_EQ"
     BSE = "BSE_EQ"
@@ -34,29 +38,6 @@ module Dhanhq
     # Validity Types
     DAY = "DAY"
     IOC = "IOC"
-
-    # CSV URLs for Security ID List
-    COMPACT_CSV_URL = "https://images.dhan.co/api-data/api-scrip-master.csv"
-    DETAILED_CSV_URL = "https://images.dhan.co/api-data/api-scrip-master-detailed.csv"
-
-    # WebSocket URL for DhanHQ Live Market Feed
-    MARKET_FEED_WSS = "wss://api-feed.dhan.co"
-
-    # Exchange Segments for WebSocket
-    IDX = 0
-    NSE_SEGMENT = 1
-    NSE_FNO_SEGMENT = 2
-    NSE_CURR_SEGMENT = 3
-    BSE_SEGMENT = 4
-    MCX_SEGMENT = 5
-    BSE_CURR_SEGMENT = 7
-    BSE_FNO_SEGMENT = 8
-
-    # Request Codes for WebSocket
-    TICKER = 15
-    QUOTE = 17
-    DEPTH = 19
-    FULL = 21
 
     EXCHANGE_MAP = {
       0 => INDEX,

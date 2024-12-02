@@ -11,7 +11,7 @@ module Dhanhq
     # @example Retrieve trade history:
     #   client = Dhanhq::Client.new
     #   trades = client.ledger.get_trade_history('2023-01-01', '2023-01-31', 1)
-    class Ledger < Base
+    class Ledger < BaseApi
       class << self
         # Retrieve Trading Account Ledger Report for a specific date range.
         #

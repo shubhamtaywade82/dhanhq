@@ -21,7 +21,7 @@ module Dhanhq
     #     price: 1428,
     #     triggerPrice: 1427
     #   })
-    class ForeverOrders < Base
+    class ForeverOrders < BaseApi
       class << self
         # Create a new Forever Order
         #
@@ -43,6 +43,12 @@ module Dhanhq
         #     triggerPrice: 1427
         #   })
         def create_forever_order(params)
+          Dhanhq::Helpers::Validator.validate_presence(params, %i[
+                                                         dhanClientId transactionType exchangeSegment productType orderType validity securityId quantity
+                                                       ])
+          Dhanhq::Helpers::Validator.validate_inclusion(
+            params[:transactionType], [Constants::BUY, Constants::SELL], "transactionType"
+          )
           request(:post, "/forever/orders", params)
         end
 

@@ -21,7 +21,7 @@ module Dhanhq
     #
     # @example Inquire eDIS Status:
     #   response = edis.inquire_status('INE733E01010')
-    class Edis < Base
+    class Edis < BaseApi
       class << self
         # Generate a T-PIN on the registered mobile number.
         #
@@ -47,6 +47,7 @@ module Dhanhq
         #     bulk: true
         #   })
         def generate_form(params)
+          Dhanhq::Helpers::Validator.validate_presence(params, %i[isin qty exchange segment])
           request(:post, "/edis/form", params)
         end
 

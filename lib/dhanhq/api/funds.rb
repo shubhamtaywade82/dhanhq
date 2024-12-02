@@ -19,7 +19,7 @@ module Dhanhq
     #     securityId: '1333',
     #     price: 1428
     #   })
-    class Funds < Base
+    class Funds < BaseApi
       class << self
         # Retrieve trading account fund information, including available balance, utilized funds, etc.
         #
@@ -47,6 +47,9 @@ module Dhanhq
         #     price: 1428
         #   })
         def calculate_margin(params)
+          Dhanhq::Helpers::Validator.validate_presence(params,
+                                                       %i[dhanClientId exchangeSegment transactionType quantity
+                                                          productType securityId price])
           request(:post, "/margincalculator", params)
         end
       end

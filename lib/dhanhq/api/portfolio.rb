@@ -23,7 +23,7 @@ module Dhanhq
     #     securityId: '11536',
     #     convertQty: 40
     #   })
-    class Portfolio < Base
+    class Portfolio < BaseApi
       class << self
         # Retrieve the list of holdings in the demat account.
         #

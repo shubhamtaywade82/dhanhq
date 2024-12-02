@@ -11,12 +11,12 @@ module Dhanhq
     #   response = orders.place_order({ quantity: 5, price: 100.0, ... })
     #
     # @see https://api.dhan.co/documentation for API documentation
-    class Orders < Base
+    class Orders < BaseApi
       # Initializes the Orders API module
       #
       # @param client [Dhanhq::Client] The main client instance to make requests
       class << self
-        # Place a new order
+        # Place a new order with required and conditional validations
         #
         # @param params [Hash] The request payload for placing a new order
         # @return [Hash] The response from the API
@@ -33,6 +33,8 @@ module Dhanhq
         #     quantity: 5
         #   })
         def place_order(params)
+          validate_required_params(params)
+          validate_conditional_params(params)
           request(:post, "/orders", params)
         end
 
@@ -135,6 +137,82 @@ module Dhanhq
         #   orders.get_trades_by_order_id('112111182045')
         def get_trades_by_order_id(order_id)
           request(:get, "/trades/#{order_id}")
+        end
+
+        private
+
+        # Validates the presence of required fields
+        def validate_required_params(params)
+          required_fields = %i[
+            dhanClientId transactionType exchangeSegment productType orderType validity securityId quantity
+          ]
+          Dhanhq::Helpers::Validator.validate_presence(params, required_fields)
+
+          Dhanhq::Helpers::Validator.validate_inclusion(
+            params[:transactionType],
+            [Constants::BUY, Constants::SELL],
+            "transactionType"
+          )
+          Dhanhq::Helpers::Validator.validate_inclusion(
+            params[:exchangeSegment],
+            [Constants::NSE, Constants::BSE, Constants::CUR, Constants::FNO, Constants::MCX],
+            "exchangeSegment"
+          )
+          Dhanhq::Helpers::Validator.validate_inclusion(
+            params[:productType],
+            [Constants::CNC, Constants::INTRA, Constants::MARGIN, Constants::CO, Constants::BO, Constants::MTF],
+            "productType"
+          )
+          Dhanhq::Helpers::Validator.validate_inclusion(
+            params[:orderType],
+            [Constants::LIMIT, Constants::MARKET, Constants::SL, Constants::SLM],
+            "orderType"
+          )
+          Dhanhq::Helpers::Validator.validate_inclusion(
+            params[:validity],
+            [Constants::DAY, Constants::IOC],
+            "validity"
+          )
+        end
+
+        # Validates conditional fields based on order type and context
+        def validate_conditional_params(params)
+          # Validate `triggerPrice` for STOP_LOSS or STOP_LOSS_MARKET orders
+          if %w[STOP_LOSS STOP_LOSS_MARKET].include?(params[:orderType]) && !params[:triggerPrice][:triggerPrice]
+            raise ArgumentError,
+                  "triggerPrice is required for orderType #{params[:orderType]}"
+          end
+
+          # Validate `afterMarketOrder` and `amoTime` if after-market order is true
+          if params[:afterMarketOrder]
+            raise ArgumentError, "amoTime is required when afterMarketOrder is true" unless params[:amoTime]
+
+            valid_amo_times = %w[OPEN OPEN_30 OPEN_60]
+            Dhanhq::Helpers::Validator.validate_inclusion(
+              params[:amoTime],
+              valid_amo_times,
+              "amoTime"
+            )
+          end
+
+          # Validate `boProfitValue` and `boStopLossValue` for Bracket Orders
+          if params[:productType] == Constants::BO
+            raise ArgumentError, "boProfitValue is required for Bracket Orders" unless params[:boProfitValue]
+            raise ArgumentError, "boStopLossValue is required for Bracket Orders" unless params[:boStopLossValue]
+          end
+
+          # Validate derivative-specific fields for F&O trades
+          return unless params[:exchangeSegment].include?("FNO")
+          raise ArgumentError, "drvExpiryDate is required for F&O trades" unless params[:drvExpiryDate]
+          raise ArgumentError, "drvOptionType is required for F&O trades" unless params[:drvOptionType]
+
+          valid_option_types = %w[CALL PUT]
+          Dhanhq::Helpers::Validator.validate_inclusion(
+            params[:drvOptionType],
+            valid_option_types,
+            "drvOptionType"
+          )
+
         end
       end
     end

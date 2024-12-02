@@ -3,7 +3,7 @@
 module Dhanhq
   module Api
     # Handles the Kill Switch API to manage trading status for the current trading day.
-    class KillSwitch < Base
+    class KillSwitch < BaseApi
       class << self
         # Activate or deactivate the Kill Switch for the account.
         #

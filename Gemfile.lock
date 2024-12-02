@@ -3,6 +3,7 @@ PATH
   specs:
     dhanhq (0.1.0)
       faraday
+      websocket-client-simple
 
 GEM
   remote: https://rubygems.org/
@@ -16,6 +17,7 @@ GEM
       bigdecimal
       rexml
     diff-lcs (1.5.1)
+    event_emitter (0.2.6)
     faraday (2.12.1)
       faraday-net_http (>= 2.0, < 3.5)
       json
@@ -79,6 +81,10 @@ GEM
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
     webrick (1.9.0)
+    websocket (1.2.11)
+    websocket-client-simple (0.8.0)
+      event_emitter
+      websocket
     yard (0.9.37)
 
 PLATFORMS

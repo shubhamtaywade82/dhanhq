@@ -23,7 +23,7 @@ module Dhanhq
     #
     # @raise [ArgumentError] If any configuration value is missing.
     def validate!
-      raise ArgumentError, "Base URL is missing" if @base_url.nil? || @base_url.empty?
+      raise ArgumentError, "BaseApi URL is missing" if @base_url.nil? || @base_url.empty?
       raise ArgumentError, "Client ID is missing" if @client_id.nil? || @client_id.empty?
       raise ArgumentError, "Access Token is missing" if @access_token.nil? || @access_token.empty?
     end

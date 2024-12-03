@@ -14,11 +14,9 @@ require_relative "dhanhq/websockets/constants"
 
 # Require the apis
 require_relative "dhanhq/base_api"
-require_relative "dhanhq/api/kill_switch"
 require_relative "dhanhq/api/orders"
 require_relative "dhanhq/api/portfolio"
 require_relative "dhanhq/api/funds"
-require_relative "dhanhq/api/edis"
 require_relative "dhanhq/api/forever_orders"
 require_relative "dhanhq/api/ledger"
 require_relative "dhanhq/api/positions"

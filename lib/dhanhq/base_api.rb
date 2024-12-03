@@ -12,29 +12,68 @@ module Dhanhq
           @client ||= Dhanhq::Client.new
         end
 
-        # Helper method for making requests
+        # Makes a request through the client
         #
         # @param method [Symbol] HTTP method (:get, :post, etc.)
         # @param endpoint [String] API endpoint (relative to base_url)
         # @param params [Hash] Request parameters
-        # @return [Hash] Parsed response
+        # @return [Hash, Array] Parsed response
         def request(method, endpoint, params = {})
-          client.request(method, endpoint, params)
+          response = client.request(method, endpoint, params)
+          handle_response(response)
         end
 
+        private
+
+        # Parses and handles the API response
+        #
+        # @param response [Faraday::Response] The response object
+        # @return [Hash, Array] Parsed JSON response
+        # @raise [Dhanhq::Errors::ApiError] For invalid or unsuccessful responses
         def handle_response(response)
           case response.status
           when 200..299
-            JSON.parse(response.body) unless response.body.nil? || response.body.strip.empty?
+            parse_json(response.body)
           when 400..499
-            raise Dhanhq::Errors::ApiError, "Client Error: #{response.status} - #{response.body}"
+            raise_client_error(response)
           when 500..599
-            raise Dhanhq::Errors::ApiError, "Server Error: #{response.status} - #{response.body}"
+            raise_server_error(response)
           else
-            raise Dhanhq::Errors::ApiError, "Unexpected Error: #{response.status} - #{response.body}"
+            raise_generic_error(response)
           end
+        end
+
+        # Parses JSON responses safely
+        #
+        # @param body [String] The response body
+        # @return [Hash, Array, nil] Parsed JSON or nil for empty body
+        def parse_json(body)
+          return nil if body.nil? || body.strip.empty?
+
+          JSON.parse(body)
         rescue JSON::ParserError => e
-          raise Dhanhq::Errors::ApiError, "Invalid JSON Response: #{response.body} - #{e.message}"
+          raise Dhanhq::Errors::ApiError, "Invalid JSON Response: #{body} - #{e.message}"
+        end
+
+        # Raises an error for client-side issues
+        #
+        # @param response [Faraday::Response] The response object
+        def raise_client_error(response)
+          raise Dhanhq::Errors::ClientError, "Client Error: #{response.status} - #{response.body}"
+        end
+
+        # Raises an error for server-side issues
+        #
+        # @param response [Faraday::Response] The response object
+        def raise_server_error(response)
+          raise Dhanhq::Errors::ServerError, "Server Error: #{response.status} - #{response.body}"
+        end
+
+        # Raises an error for unexpected scenarios
+        #
+        # @param response [Faraday::Response] The response object
+        def raise_generic_error(response)
+          raise Dhanhq::Errors::ApiError, "Unexpected Error: #{response.status} - #{response.body}"
         end
       end
     end

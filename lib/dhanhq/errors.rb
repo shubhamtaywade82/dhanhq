@@ -1,7 +1,14 @@
 # frozen_string_literal: true
 
 module Dhanhq
-  # Custom error class for handling DhanHQ gem errors.
-  class Error < StandardError; end
-  class ApiError < Error; end
+  module Errors
+    # Base class for all API errors
+    class ApiError < StandardError; end
+
+    # Raised for client-side errors (400-499)
+    class ClientError < ApiError; end
+
+    # Raised for server-side errors (500-599)
+    class ServerError < ApiError; end
+  end
 end

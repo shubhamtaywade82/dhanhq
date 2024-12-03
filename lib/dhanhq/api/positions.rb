@@ -9,10 +9,10 @@ module Dhanhq
 
       def self.close_position(security_id:, exchange_segment:, quantity:, transaction_type:)
         payload = {
-          security_id: security_id,
-          exchange_segment: Constants::EXCHANGE_MAP[exchange_segment] || exchange_segment,
+          securityId: security_id,
+          exchangeSegment: Constants::EXCHANGE_MAP[exchange_segment] || exchange_segment,
           quantity: quantity,
-          transaction_type: transaction_type
+          transactionType: transaction_type
         }
         request(:post, "/positions/convert", payload)
       end

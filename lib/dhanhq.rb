@@ -21,11 +21,6 @@ require_relative "dhanhq/api/forever_orders"
 require_relative "dhanhq/api/ledger"
 require_relative "dhanhq/api/positions"
 
-# # Require the websockets
-# require_relative "dhanhq/websockets/base_web_socket"
-# require_relative "dhanhq/websockets/market_feed"
-# require_relative "dhanhq/websockets/order_update"
-
 # Dhanhq is a Ruby gem for interacting with the DhanHQ Trading API.
 #
 # @see Dhanhq::API for API interaction methods

@@ -4,25 +4,6 @@ module Dhanhq
   module Api
     # Handles endpoints related to Portfolio, including holdings, positions,
     # and conversion of positions.
-    #
-    # @example Retrieve holdings:
-    #   client = Dhanhq::Client.new
-    #   portfolio = client.portfolio
-    #   holdings = portfolio.get_holdings
-    #
-    # @example Retrieve positions:
-    #   client = Dhanhq::Client.new
-    #   positions = portfolio.get_positions
-    #
-    # @example Convert a position:
-    #   client = Dhanhq::Client.new
-    #   portfolio.convert_position({
-    #     dhanClientId: '1000000009',
-    #     fromProductType: 'INTRADAY',
-    #     toProductType: 'CNC',
-    #     securityId: '11536',
-    #     convertQty: 40
-    #   })
     class Portfolio < BaseApi
       class << self
         # Retrieve the list of holdings in the demat account.
@@ -59,7 +40,16 @@ module Dhanhq
         #     convertQty: 40
         #   })
         def convert_position(params)
+          validate_params(params, Dhanhq::Validators::Portfolio::ConvertPositionSchema)
           request(:post, "/positions/convert", params)
+        end
+
+        private
+
+        # Validates parameters using a given schema
+        def validate_params(params, schema)
+          result = schema.call(params)
+          raise Dhanhq::Errors::ValidationError, result.errors.to_h if result.failure?
         end
       end
     end

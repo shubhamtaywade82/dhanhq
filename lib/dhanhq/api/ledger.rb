@@ -3,14 +3,6 @@
 module Dhanhq
   module Api
     # Handles endpoints related to Ledger and Trade History APIs
-    #
-    # @example Retrieve the ledger report for a specific date range:
-    #   client = Dhanhq::Client.new
-    #   ledger = client.ledger.get_ledger_report('2023-01-01', '2023-01-31')
-    #
-    # @example Retrieve trade history:
-    #   client = Dhanhq::Client.new
-    #   trades = client.ledger.get_trade_history('2023-01-01', '2023-01-31', 1)
     class Ledger < BaseApi
       class << self
         # Retrieve Trading Account Ledger Report for a specific date range.
@@ -22,6 +14,7 @@ module Dhanhq
         # @example Get ledger report:
         #   ledger.get_ledger_report('2023-01-01', '2023-01-31')
         def get_ledger_report(from_date, to_date)
+          validate_params({ from_date:, to_date: }, Dhanhq::Validators::Ledger::LedgerReportSchema)
           endpoint = "/ledger?from_date=#{from_date}&to_date=#{to_date}"
           request(:get, endpoint)
         end
@@ -36,8 +29,17 @@ module Dhanhq
         # @example Get trade history:
         #   ledger.get_trade_history('2023-01-01', '2023-01-31', 1)
         def get_trade_history(from_date, to_date, page)
+          validate_params({ from_date:, to_date:, page: }, Dhanhq::Validators::Ledger::TradeHistorySchema)
           endpoint = "/trades/#{from_date}/#{to_date}/#{page}"
           request(:get, endpoint)
+        end
+
+        private
+
+        # Validates parameters using a given schema
+        def validate_params(params, schema)
+          result = schema.call(params)
+          raise Dhanhq::Errors::ValidationError, result.errors.to_h if result.failure?
         end
       end
     end

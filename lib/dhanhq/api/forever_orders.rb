@@ -4,23 +4,6 @@ module Dhanhq
   module Api
     # Handles endpoints related to Forever Orders, including creation, modification,
     # cancellation, and retrieval of Forever Orders.
-    #
-    # @example Create a new Forever Order:
-    #   client = Dhanhq::Client.new
-    #   forever_orders = client.forever_orders
-    #   response = forever_orders.create_forever_order({
-    #     dhanClientId: '1000000132',
-    #     orderFlag: 'SINGLE',
-    #     transactionType: 'BUY',
-    #     exchangeSegment: 'NSE_EQ',
-    #     productType: 'CNC',
-    #     orderType: 'LIMIT',
-    #     validity: 'DAY',
-    #     securityId: '1333',
-    #     quantity: 5,
-    #     price: 1428,
-    #     triggerPrice: 1427
-    #   })
     class ForeverOrders < BaseApi
       class << self
         # Create a new Forever Order
@@ -43,12 +26,7 @@ module Dhanhq
         #     triggerPrice: 1427
         #   })
         def create_forever_order(params)
-          Dhanhq::Helpers::Validator.validate_presence(params, %i[
-                                                         dhanClientId transactionType exchangeSegment productType orderType validity securityId quantity
-                                                       ])
-          Dhanhq::Helpers::Validator.validate_inclusion(
-            params[:transactionType], [Constants::BUY, Constants::SELL], "transactionType"
-          )
+          validate_params(params, Dhanhq::Validators::ForeverOrders::CreateForeverOrderSchema)
           request(:post, "/forever/orders", params)
         end
 
@@ -69,6 +47,9 @@ module Dhanhq
         #     triggerPrice: 1420
         #   })
         def modify_forever_order(order_id, params)
+          params[:orderId] = order_id
+          validate_field(order_id, :orderId)
+          validate_params(params, Dhanhq::Validators::ForeverOrders::ModifyForeverOrderSchema)
           request(:put, "/forever/orders/#{order_id}", params)
         end
 
@@ -80,6 +61,7 @@ module Dhanhq
         # @example Cancel a Forever Order:
         #   forever_orders.cancel_forever_order('5132208051112')
         def cancel_forever_order(order_id)
+          validate_field(order_id, :orderId)
           request(:delete, "/forever/orders/#{order_id}")
         end
 
@@ -91,6 +73,25 @@ module Dhanhq
         #   forever_orders.get_forever_orders
         def forever_orders
           request(:get, "/forever/orders")
+        end
+
+        private
+
+        # Validates parameters using a given schema
+        def validate_params(params, schema)
+          result = schema.call(params)
+          raise Dhanhq::Errors::ValidationError, result.errors.to_h if result.failure?
+        end
+
+        # Validates a single field
+        #
+        # @param value [String] The value to validate
+        # @param field_name [Symbol] The field name for error reporting
+        def validate_field(value, field_name)
+          return if value.is_a?(String) && !value.strip.empty?
+
+          raise Dhanhq::Errors::ValidationError,
+                { field_name => "must be present and valid" }
         end
       end
     end

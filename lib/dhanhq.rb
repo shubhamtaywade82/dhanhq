@@ -18,7 +18,6 @@ require_relative "dhanhq/api/portfolio"
 require_relative "dhanhq/api/funds"
 require_relative "dhanhq/api/forever_orders"
 require_relative "dhanhq/api/ledger"
-require_relative "dhanhq/api/positions"
 
 # Dhanhq is a Ruby gem for interacting with the DhanHQ Trading API.
 #

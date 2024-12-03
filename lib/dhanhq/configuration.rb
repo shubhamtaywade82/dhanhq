@@ -3,6 +3,9 @@
 module Dhanhq
   # Handles configuration settings for the DhanHQ gem.
   class Configuration
+    # Default base URL for the API.
+    DEFAULT_BASE_URL = "https://api.dhan.co/v2"
+
     # @return [String] The base URL for the API.
     attr_accessor :base_url
 
@@ -14,7 +17,7 @@ module Dhanhq
 
     # Initializes the configuration with default values.
     def initialize
-      @base_url = nil
+      @base_url = DEFAULT_BASE_URL
       @client_id = nil
       @access_token = nil
     end

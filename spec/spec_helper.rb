@@ -4,6 +4,8 @@ require "dhanhq"
 require "vcr"
 require "webmock/rspec"
 
+require_relative "support/dhanhq_helper"
+
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status"
@@ -22,6 +24,8 @@ RSpec.configure do |config|
   config.mock_with :rspec do |mocks|
     mocks.verify_partial_doubles = true
   end
+
+  config.include DhanhqHelper
 end
 
 VCR.configure do |c|
@@ -29,3 +33,5 @@ VCR.configure do |c|
   c.hook_into :webmock
   c.filter_sensitive_data("<ACCESS_TOKEN>") { ENV.fetch("ACCESS_TOKEN", nil) }
 end
+
+WebMock.disable_net_connect!(allow_localhost: true)

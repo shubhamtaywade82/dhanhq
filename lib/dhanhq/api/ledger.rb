@@ -33,14 +33,6 @@ module Dhanhq
           endpoint = "/trades/#{from_date}/#{to_date}/#{page}"
           request(:get, endpoint)
         end
-
-        private
-
-        # Validates parameters using a given schema
-        def validate_params(params, schema)
-          result = schema.call(params)
-          raise Dhanhq::Errors::ValidationError, result.errors.to_h if result.failure?
-        end
       end
     end
   end

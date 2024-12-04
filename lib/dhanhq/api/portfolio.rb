@@ -43,14 +43,6 @@ module Dhanhq
           validate_params(params, Dhanhq::Validators::Portfolio::ConvertPositionSchema)
           request(:post, "/positions/convert", params)
         end
-
-        private
-
-        # Validates parameters using a given schema
-        def validate_params(params, schema)
-          result = schema.call(params)
-          raise Dhanhq::Errors::ValidationError, result.errors.to_h if result.failure?
-        end
       end
     end
   end

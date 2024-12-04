@@ -5,28 +5,12 @@ require "json"
 
 module Dhanhq
   # The Client class serves as the central point for interacting with the DhanHQ API.
-  # It provides a configured Faraday connection and facilitates API requests.
-  #
-  # @example Making an API call
-  #   client = Dhanhq::Client.new
-  #   response = client.request(:get, "/orders")
-  #
-  # @see Dhanhq::Api for specific API modules
   class Client
     attr_reader :connection
 
     def initialize
-      # Validate the configuration to ensure required attributes are present
-      Dhanhq.configuration.validate!
-
-      @connection = Faraday.new(url: Dhanhq.configuration.base_url) do |faraday|
-        faraday.headers["access-token"] = Dhanhq.configuration.access_token
-        faraday.headers["Content-Type"] = "application/json"
-        faraday.headers["Accept"] = "application/json"
-        faraday.request :json # Automatically encode request body as JSON
-        faraday.response :json, content_type: /\bjson$/ # Automatically parse JSON response
-        faraday.adapter Faraday.default_adapter
-      end
+      validate_configuration!
+      @connection = setup_connection
     end
 
     # Makes an API request
@@ -37,9 +21,9 @@ module Dhanhq
     # @return [Hash, Array] Parsed JSON response
     # @raise [Dhanhq::Error] If the response indicates an error
     def request(method, endpoint, params = {})
-      response = @connection.send(method) do |req|
+      response = connection.public_send(method) do |req|
         req.url endpoint
-        req.body = params.to_json unless params.nil? || params.empty?
+        req.body = params.to_json unless params.empty?
       end
 
       handle_response(response)
@@ -47,20 +31,32 @@ module Dhanhq
 
     private
 
+    # Validates the configuration
+    def validate_configuration!
+      Dhanhq.configuration.validate!
+    end
+
+    # Sets up the Faraday connection
+    def setup_connection
+      Faraday.new(url: Dhanhq.configuration.base_url) do |faraday|
+        faraday.headers["access-token"] = Dhanhq.configuration.access_token
+        faraday.headers["Content-Type"] = "application/json"
+        faraday.headers["Accept"] = "application/json"
+        faraday.request :json
+        faraday.response :json, content_type: /\bjson$/
+        faraday.adapter Faraday.default_adapter
+      end
+    end
+
     # Handles the API response
     #
     # @param response [Faraday::Response] The response object
     # @return [Hash, Array] Parsed JSON if successful
-    # @raise [Dhanhq::Error] If the response status is not successful
+    # @raise [Dhanhq::Error] For non-successful responses
     def handle_response(response)
-      raise Dhanhq::Error.new(status: response.status, body: response.body) unless response.success?
+      raise Dhanhq::Error.new(status: response.status, body: response.body || "Unknown error") unless response.success?
 
-      # Return an empty hash if the response body is nil or blank
-      return {} if response.body.nil? || response.body.strip.empty?
-
-      response.body
-    rescue JSON::ParserError
-      raise Dhanhq::Error.new(status: response.status, body: "Invalid JSON response")
+      response.body || {}
     end
   end
 

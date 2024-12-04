@@ -5,6 +5,11 @@ require_relative "../validators/orders/modify_order_validator"
 
 module Dhanhq
   module Api
+    # Handles API requests related to orders, including:
+    # - Placing a new order
+    # - Modifying a pending order
+    # - Cancelling an order
+    # - Retrieving order details
     class Orders < BaseApi
       class << self
         # Place a new order
@@ -61,12 +66,6 @@ module Dhanhq
         end
 
         private
-
-        # Validates parameters using a given schema
-        def validate_params(params, schema)
-          result = schema.call(params)
-          raise Dhanhq::Errors::ValidationError, result.errors.to_h if result.failure?
-        end
 
         # Validates a single field
         #

@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
                      ", fetching market data, and building algo-based trading applications."
   spec.homepage = "https://github.com/shubhamtaywade82/dhanhq"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.0.0"
+  spec.required_ruby_version = ">= 3.3.0"
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
 
@@ -35,6 +35,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Runtime Dependencies
+  spec.add_dependency "dry-validation"
   spec.add_dependency "faraday"
   spec.add_dependency "websocket-client-simple"
 

@@ -3,9 +3,13 @@
 module Dhanhq
   module Validators
     module Orders
-      CancelOrderSchema = Dry::Validation.Schema do
-        required(:dhanClientId).filled(:str?)
-        required(:orderId).filled(:str?)
+      # Validates the parameters for cancelling an existing order.
+      # Ensures the required fields, such as order ID, are provided and valid.
+      class CancelOrderValidator < Dry::Validation::Contract
+        params do
+          required(:dhanClientId).filled(:string)
+          required(:orderId).filled(:string)
+        end
       end
     end
   end

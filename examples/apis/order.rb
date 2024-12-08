@@ -4,7 +4,7 @@ require "dhanhq"
 
 # Initialize the DhanHQ client
 Dhanhq.configure do |config|
-  config.base_url = "https://api.dhan.co"
+  config.base_url = "http://api.dhan.test.co"
   config.client_id = "your_client_id" # Replace with your Dhan Client ID
   config.access_token = "your_access_token" # Replace with your access token
 end

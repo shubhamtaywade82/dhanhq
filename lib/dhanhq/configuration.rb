@@ -15,11 +15,14 @@ module Dhanhq
     # @return [String, nil] The access token for authentication.
     attr_accessor :access_token
 
+    attr_accessor :enable_data_api
+
     # Initializes the configuration with default values.
     def initialize
       @base_url = DEFAULT_BASE_URL
       @client_id = nil
       @access_token = nil
+      @enable_data_api = false
     end
 
     # Validates the configuration settings.
@@ -29,6 +32,7 @@ module Dhanhq
       raise ArgumentError, "BaseApi URL is missing" if @base_url.nil? || @base_url.empty?
       raise ArgumentError, "Client ID is missing" if @client_id.nil? || @client_id.empty?
       raise ArgumentError, "Access Token is missing" if @access_token.nil? || @access_token.empty?
+      raise ArgumentError, "Enable Data API must be boolean" unless [true, false].include?(enable_data_api)
     end
   end
 end

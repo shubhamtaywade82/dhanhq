@@ -3,7 +3,7 @@
 module DhanhqHelper
   def configure_dhanhq
     Dhanhq.configure do |config|
-      config.base_url = "https://api.dhan.co/v2"
+      config.base_url = "http://api.dhan.test.co"
       config.client_id = "test_client_id"
       config.access_token = "test_access_token"
     end

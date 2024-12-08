@@ -4,16 +4,12 @@ require "dhanhq"
 
 RSpec.describe Dhanhq::Configuration do
   before do
-    Dhanhq.configure do |config|
-      config.base_url = "https://api.dhan.co"
-      config.client_id = "test_client_id"
-      config.access_token = "test_access_token"
-    end
+    configure_dhanhq
   end
 
   describe "Configuration" do
     it "sets and retrieves the base_url" do
-      expect(Dhanhq.configuration.base_url).to eq("https://api.dhan.co")
+      expect(Dhanhq.configuration.base_url).to eq("http://api.dhan.test.co")
     end
 
     it "sets and retrieves the client_id" do

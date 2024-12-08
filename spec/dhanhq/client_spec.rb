@@ -15,7 +15,7 @@ RSpec.describe Dhanhq::Client do
     let(:response_body) { { orders: [] }.to_json }
 
     it "makes a successful GET request" do
-      stub_request(:get, "https://api.dhan.co/orders")
+      stub_request(:get, "http://api.dhan.test.co/orders")
         .to_return(status: 200, body: response_body, headers: { "Content-Type" => "application/json" })
 
       response = client.request(:get, endpoint)
@@ -24,7 +24,7 @@ RSpec.describe Dhanhq::Client do
     end
 
     it "raises an error for a failed request" do
-      stub_request(:get, "https://api.dhan.co/orders")
+      stub_request(:get, "http://api.dhan.test.co/orders")
         .to_return(status: 400, body: { error: "Bad Request" }.to_json)
 
       expect { client.request(:get, endpoint) }.to raise_error(Dhanhq::Error)

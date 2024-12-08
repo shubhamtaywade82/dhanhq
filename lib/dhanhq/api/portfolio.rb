@@ -40,7 +40,7 @@ module Dhanhq
         #     convertQty: 40
         #   })
         def convert_position(params)
-          validate_params(params, Dhanhq::Validators::Portfolio::ConvertPositionSchema)
+          validate_params!(params, Dhanhq::Validators::Portfolio::ConvertPositionSchema)
           request(:post, "/positions/convert", params)
         end
       end

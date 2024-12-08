@@ -1,17 +1,23 @@
 # frozen_string_literal: true
 
+require "dry/validation"
+
 module Dhanhq
   module Validators
     module Portfolio
-      ConvertPositionSchema = Dry::Validation.Schema do
-        required(:dhanClientId).filled(:str?)
-        required(:fromProductType).filled(included_in?: %w[CNC INTRADAY MARGIN CO BO])
-        required(:toProductType).filled(included_in?: %w[CNC INTRADAY MARGIN CO BO])
-        required(:securityId).filled(:str?)
-        required(:convertQty).filled(:int?, gt?: 0)
+      # Validates the parameters required for converting a position.
+      # Ensures all fields are present and meet the API's constraints.
+      class ConvertPositionValidator < Dry::Validation::Contract
+        params do
+          required(:dhanClientId).filled(:string)
+          required(:fromProductType).filled(:string, included_in?: %w[CNC INTRADAY MARGIN CO BO])
+          required(:toProductType).filled(:string, included_in?: %w[CNC INTRADAY MARGIN CO BO])
+          required(:securityId).filled(:string)
+          required(:convertQty).filled(:integer, gt?: 0)
+        end
 
-        rule(product_type_change: %i[fromProductType toProductType]) do |from_product, to_product|
-          from_product.not_eql?(to_product)
+        rule(:fromProductType, :toProductType) do
+          key.failure("must not be the same") if values[:fromProductType] == values[:toProductType]
         end
       end
     end

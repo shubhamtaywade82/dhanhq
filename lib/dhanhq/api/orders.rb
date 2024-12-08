@@ -14,15 +14,24 @@ module Dhanhq
       class << self
         # Place a new order
         def place_order(params)
-          validate_params(params, Dhanhq::Validators::Orders::PlaceOrderSchema)
+          validate_params!(params, Dhanhq::Validators::Orders::PlaceOrderValidator)
           request(:post, "/orders", params)
         end
 
         # Modify an existing order
         def modify_order(order_id, params)
           params[:orderId] = order_id
-          validate_params(params, Dhanhq::Validators::Orders::ModifyOrderSchema)
+          validate_params!(params, Validators::Orders::ModifyOrderValidator)
           request(:put, "/orders/#{order_id}", params)
+        end
+
+        def add_stop_loss(order_id, trigger_price)
+          modify_order(order_id, { triggerPrice: trigger_price, orderType: "STOP_LOSS_MARKET" })
+        end
+
+        def update_trailing_stop_loss(order_id, trigger_price)
+          # Trailing stop-loss uses periodic price updates to modify stop-loss
+          modify_order(order_id, { triggerPrice: trigger_price })
         end
 
         # Cancel a pending order
@@ -33,7 +42,7 @@ module Dhanhq
 
         # Place a slicing order
         def place_slice_order(params)
-          validate_params(params, Dhanhq::Validators::Orders::PlaceOrderSchema) # Reuses the PlaceOrderSchema
+          validate_params!(params, Dhanhq::Validators::Orders::PlaceSliceOrderValidator)
           request(:post, "/orders/slicing", params)
         end
 

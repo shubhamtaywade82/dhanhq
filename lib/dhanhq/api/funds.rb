@@ -31,7 +31,7 @@ module Dhanhq
         #     price: 1428
         #   })
         def calculate_margin(params)
-          validate_params(params, Dhanhq::Validators::Funds::CalculateMarginSchema)
+          validate_params!(params, Dhanhq::Validators::Funds::CalculateMarginValidator)
           request(:post, "/margincalculator", params)
         end
       end

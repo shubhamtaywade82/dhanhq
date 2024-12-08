@@ -9,9 +9,19 @@ module Dhanhq
     class ClientError < ApiError; end
 
     # Raised for server-side errors (500-599)
-    class ServerError < ApiError; end
+    class ServerError < ApiError
+      attr_reader :status, :body, :error, :message
 
-    # custom error for validation failures
+      def initialize(status, body)
+        @status = status
+        @body = body
+        @error = body["error"]
+        @message = body["message"]
+        super("Server Error: #{status} - #{@error}: #{@message}")
+      end
+    end
+
+    # Custom error for validation failures
     class ValidationError < StandardError
       attr_reader :errors
 

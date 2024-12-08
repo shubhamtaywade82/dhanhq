@@ -14,7 +14,7 @@ module Dhanhq
         # @example Get ledger report:
         #   ledger.get_ledger_report('2023-01-01', '2023-01-31')
         def get_ledger_report(from_date, to_date)
-          validate_params({ from_date:, to_date: }, Dhanhq::Validators::Ledger::LedgerReportSchema)
+          validate_params!({ from_date:, to_date: }, Dhanhq::Validators::Ledger::LedgerReportSchema)
           endpoint = "/ledger?from_date=#{from_date}&to_date=#{to_date}"
           request(:get, endpoint)
         end
@@ -29,7 +29,7 @@ module Dhanhq
         # @example Get trade history:
         #   ledger.get_trade_history('2023-01-01', '2023-01-31', 1)
         def get_trade_history(from_date, to_date, page)
-          validate_params({ from_date:, to_date:, page: }, Dhanhq::Validators::Ledger::TradeHistorySchema)
+          validate_params!({ from_date:, to_date:, page: }, Dhanhq::Validators::Ledger::TradeHistorySchema)
           endpoint = "/trades/#{from_date}/#{to_date}/#{page}"
           request(:get, endpoint)
         end

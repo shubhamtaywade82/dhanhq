@@ -2,6 +2,7 @@
 
 require "dry-validation"
 
+# Base Setup
 require_relative "dhanhq/version"
 require_relative "dhanhq/configuration"
 require_relative "dhanhq/client"
@@ -11,23 +12,8 @@ require_relative "dhanhq/errors"
 require_relative "dhanhq/helpers/constants"
 require_relative "dhanhq/helpers/exchange_helper"
 
-# Validators
-require_relative "dhanhq/validators/orders/place_order_validator"
-require_relative "dhanhq/validators/orders/modify_order_validator"
-require_relative "dhanhq/validators/orders/cancel_order_validator"
-require_relative "dhanhq/validators/ledger/ledger_report_validator"
-require_relative "dhanhq/validators/ledger/trade_history_validator"
-require_relative "dhanhq/validators/funds/calculate_margin_validator"
-require_relative "dhanhq/validators/forever_orders/create_forever_order_validator"
-require_relative "dhanhq/validators/forever_orders/modify_forever_order_validator"
-
-# APIs
-require_relative "dhanhq/api/base_api"
-require_relative "dhanhq/api/orders"
-require_relative "dhanhq/api/ledger"
-require_relative "dhanhq/api/funds"
-require_relative "dhanhq/api/forever_orders"
-require_relative "dhanhq/api/portfolio"
+# Dynamically load all files under `lib/dhanhq`
+Dir[File.join(__dir__, "dhanhq/**/*.rb")].each { |file| require file }
 
 # Dhanhq is a Ruby gem for interacting with the DhanHQ Trading API.
 #

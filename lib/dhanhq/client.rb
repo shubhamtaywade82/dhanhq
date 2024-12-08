@@ -56,7 +56,20 @@ module Dhanhq
     def handle_response(response)
       raise Dhanhq::Error.new(status: response.status, body: response.body || "Unknown error") unless response.success?
 
-      response.body || {}
+      parse_json(response.body)
+    end
+
+    # Parses the response body as JSON
+    #
+    # @param body [String] The response body as a string
+    # @return [Hash, Array] Parsed JSON object
+    # @raise [Dhanhq::Error] If the body cannot be parsed
+    def parse_json(body)
+      return {} if body.nil? || body.empty?
+
+      JSON.parse(body.is_a?(String) ? body : body.to_json)
+    rescue JSON::ParserError => e
+      raise Dhanhq::Error.new(status: 500, body: "Invalid JSON response: #{e.message}")
     end
   end
 

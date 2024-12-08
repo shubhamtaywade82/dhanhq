@@ -26,7 +26,7 @@ module Dhanhq
         #     triggerPrice: 1427
         #   })
         def create_forever_order(params)
-          validate_params(params, Dhanhq::Validators::ForeverOrders::CreateForeverOrderSchema)
+          validate_params!(params, Dhanhq::Validators::ForeverOrders::CreateForeverOrderSchema)
           request(:post, "/forever/orders", params)
         end
 
@@ -49,7 +49,7 @@ module Dhanhq
         def modify_forever_order(order_id, params)
           params[:orderId] = order_id
           validate_field(order_id, :orderId)
-          validate_params(params, Dhanhq::Validators::ForeverOrders::ModifyForeverOrderSchema)
+          validate_params!(params, Dhanhq::Validators::ForeverOrders::ModifyForeverOrderSchema)
           request(:put, "/forever/orders/#{order_id}", params)
         end
 

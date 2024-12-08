@@ -5,6 +5,7 @@ require "vcr"
 require "webmock/rspec"
 
 require_relative "support/dhanhq_helper"
+require_relative "support/json_helper"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -26,12 +27,13 @@ RSpec.configure do |config|
   end
 
   config.include DhanhqHelper
+  config.include JsonHelper
 end
 
-VCR.configure do |c|
-  c.cassette_library_dir = "spec/vcr_cassettes"
-  c.hook_into :webmock
-  c.filter_sensitive_data("<ACCESS_TOKEN>") { ENV.fetch("ACCESS_TOKEN", nil) }
-end
+# VCR.configure do |c|
+#   c.cassette_library_dir = "spec/vcr_cassettes"
+#   c.hook_into :webmock
+#   c.filter_sensitive_data("<ACCESS_TOKEN>") { ENV.fetch("ACCESS_TOKEN", nil) }
+# end
 
 WebMock.disable_net_connect!(allow_localhost: true)

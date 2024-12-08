@@ -19,6 +19,10 @@ module Dhanhq
         # @param params [Hash] Request parameters
         # @return [Hash, Array] Parsed response
         def request(method, endpoint, params = {})
+          if (endpoint.include?("marketfeed") || endpoint.include?("charts")) && !Dhanhq.configuration.enable_data_api
+            raise "Data API access is disabled"
+          end
+
           client.request(method, endpoint, params)
         rescue Dhanhq::Error => e
           handle_error(e)
@@ -28,8 +32,8 @@ module Dhanhq
         #
         # @param params [Hash] Parameters to validate
         # @param schema [Dry::Validation::Contract] Validation schema
-        def validate_params(params, schema)
-          result = schema.call(params)
+        def validate_params!(params, schema)
+          result = schema.new.call(params)
           raise Dhanhq::Errors::ValidationError, result.errors.to_h if result.failure?
         end
 
@@ -43,7 +47,7 @@ module Dhanhq
           when 400..499
             raise Dhanhq::Errors::ClientError, "Client Error: #{error.status} - #{error.body}"
           when 500..599
-            raise Dhanhq::Errors::ServerError, "Server Error: #{error.status} - #{error.body}"
+            raise Dhanhq::Errors::ServerError.new(error.status, error.body)
           else
             raise Dhanhq::Errors::ApiError, "Unexpected Error: #{error.status} - #{error.body}"
           end

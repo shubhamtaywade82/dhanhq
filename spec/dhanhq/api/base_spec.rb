@@ -31,7 +31,7 @@ RSpec.describe Dhanhq::Api::Base do
 
     context "when the response is successful" do
       before do
-        allow(mock_response).to receive_messages(status: 200, body: '{"message":"success"}')
+        allow(mock_response).to receive_messages(status: 200, body: { "message" => "success" })
         allow(mock_connection).to receive(:post).with(path, params.to_json).and_return(mock_response)
       end
 
@@ -56,7 +56,8 @@ RSpec.describe Dhanhq::Api::Base do
 
     context "when the response has a server error (5xx)" do
       before do
-        allow(mock_response).to receive_messages(status: 500, body: '{"error":"Internal Error","message":"Server Failure"}')
+        allow(mock_response).to receive_messages(status: 500,
+                                                 body: { error: "Internal Error", message: "Server Failure" })
         allow(mock_connection).to receive(:post).with(path, params.to_json).and_return(mock_response)
       end
 
@@ -80,13 +81,13 @@ RSpec.describe Dhanhq::Api::Base do
     end
   end
 
-  describe ".parse_response" do
+  describe ".handle_response" do
     let(:response) { instance_double(Faraday::Response) }
 
     context "when the response status is 200" do
       it "returns the parsed JSON body" do
-        allow(response).to receive_messages(status: 200, body: '{"key":"value"}')
-        result = described_class.send(:parse_response, response)
+        allow(response).to receive_messages(status: 200, body: { "key" => "value" })
+        result = described_class.send(:handle_response, response)
         expect(result).to eq("key" => "value")
       end
     end
@@ -94,8 +95,8 @@ RSpec.describe Dhanhq::Api::Base do
     context "when the response body is invalid JSON" do
       it "returns an empty hash" do
         allow(response).to receive_messages(status: 200, body: "invalid_json")
-        result = described_class.send(:parse_response, response)
-        expect(result).to eq({})
+        result = described_class.send(:handle_response, response)
+        expect(result).to eq("invalid_json")
       end
     end
 
@@ -103,7 +104,7 @@ RSpec.describe Dhanhq::Api::Base do
       it "raises a standard error for unexpected nil response" do
         allow(response).to receive_messages(status: nil, body: nil)
         expect do
-          described_class.send(:parse_response, response)
+          described_class.send(:handle_response, response)
         end.to raise_error(StandardError, /Unexpected response status/)
       end
     end

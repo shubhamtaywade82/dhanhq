@@ -34,4 +34,15 @@ module Dhanhq
       end
     end
   end
+
+  # Custom error class for handling API errors
+  class Error < StandardError
+    attr_reader :status, :body
+
+    def initialize(status:, body:)
+      @status = status
+      @body = body
+      super("API Error: #{status} - #{body}")
+    end
+  end
 end

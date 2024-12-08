@@ -20,8 +20,8 @@ module Dhanhq
         # @raise [Dhanhq::Errors::ClientError] for 4xx errors.
         # @raise [Dhanhq::Errors::ServerError] for 5xx errors.
         def request(method, path, params = {})
-          response = connection.send(method, path, json_params(method, params))
-          parse_response(response)
+          response = connection.send(method, path, params)
+          handle_response(response)
         rescue Faraday::ConnectionFailed => e
           raise Dhanhq::Errors::ClientError.new("Connection error: #{e.message}", nil, {})
         end
@@ -34,12 +34,8 @@ module Dhanhq
         # @return [Hash] Parsed JSON response.
         # @raise [Dhanhq::Errors::ClientError] for 4xx errors.
         # @raise [Dhanhq::Errors::ServerError] for 5xx errors.
-        def parse_response(response)
-          body = begin
-            JSON.parse(response.body)
-          rescue StandardError
-            {}
-          end
+        def handle_response(response)
+          body = response.body || {}
 
           case response.status
           when 200...300

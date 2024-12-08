@@ -37,6 +37,7 @@ Gem::Specification.new do |spec|
   # Runtime Dependencies
   spec.add_dependency "dry-validation"
   spec.add_dependency "faraday"
+  spec.add_dependency "faraday_middleware"
   spec.add_dependency "websocket-client-simple"
 
   # For more information and examples about making a new gem, check out our

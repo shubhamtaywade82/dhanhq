@@ -4,6 +4,7 @@ PATH
     dhanhq (0.1.0)
       dry-validation
       faraday
+      faraday_middleware
       websocket-client-simple
 
 GEM
@@ -54,18 +55,16 @@ GEM
       dry-schema (>= 1.12, < 2)
       zeitwerk (~> 2.6)
     event_emitter (0.2.6)
-    faraday (2.12.1)
-      faraday-net_http (>= 2.0, < 3.5)
-      json
-      logger
-    faraday-net_http (3.4.0)
-      net-http (>= 0.5.0)
+    faraday (1.2.0)
+      multipart-post (>= 1.2, < 3)
+      ruby2_keywords
+    faraday_middleware (1.2.1)
+      faraday (~> 1.0)
     hashdiff (1.1.2)
     json (2.8.2)
     language_server-protocol (3.17.0.3)
     logger (1.6.1)
-    net-http (0.5.0)
-      uri
+    multipart-post (2.4.1)
     parallel (1.26.3)
     parser (3.3.6.0)
       ast (~> 2.4.1)
@@ -106,10 +105,10 @@ GEM
     rubocop-rspec (3.2.0)
       rubocop (~> 1.61)
     ruby-progressbar (1.13.0)
+    ruby2_keywords (0.0.5)
     unicode-display_width (3.1.2)
       unicode-emoji (~> 4.0, >= 4.0.4)
     unicode-emoji (4.0.4)
-    uri (1.0.2)
     vcr (6.3.1)
       base64
     webmock (3.24.0)

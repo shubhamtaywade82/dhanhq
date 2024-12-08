@@ -2,6 +2,7 @@
 
 require "faraday"
 require "json"
+require "faraday_middleware"
 
 module Dhanhq
   # The Client class serves as the central point for interacting with the DhanHQ API.
@@ -37,14 +38,21 @@ module Dhanhq
     end
 
     # Sets up the Faraday connection
-    def setup_connection
-      Faraday.new(url: Dhanhq.configuration.base_url) do |faraday|
-        faraday.headers["access-token"] = Dhanhq.configuration.access_token
-        faraday.headers["Content-Type"] = "application/json"
-        faraday.headers["Accept"] = "application/json"
-        faraday.request :json
-        faraday.response :json, content_type: /\bjson$/
-        faraday.adapter Faraday.default_adapter
+    def setup_connection(url: Dhanhq.configuration.base_url, headers: {}, timeout: 60)
+      Faraday.new(url: url) do |conn|
+        conn.request :json # Request bodies are encoded as JSON
+        conn.response :json, content_type: /\bjson$/ # Parse JSON responses
+        conn.response :logger if ENV["DHAN_DEBUG"] # Optional: log requests/responses
+        conn.adapter Faraday.default_adapter # Use default Net::HTTP adapter
+
+        conn.headers["Accept"] = "application/json"
+        conn.headers["Content-Type"] = "application/json"
+        conn.headers["access-token"] = Dhanhq.configuration.access_token
+        conn.headers["client-id"] = Dhanhq.configuration.client_id
+
+        headers.each { |key, value| conn.headers[key] = value }
+        conn.options.timeout = timeout
+        conn.options.open_timeout = timeout
       end
     end
 

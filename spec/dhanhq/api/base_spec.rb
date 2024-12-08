@@ -1,148 +1,136 @@
 # frozen_string_literal: true
 
 require "spec_helper"
+require "dhanhq/api/base"
 
 RSpec.describe Dhanhq::Api::Base do
-  let(:connection) { instance_double(Faraday::Connection) }
-  let(:base_api) { described_class.new(connection: connection) }
+  let(:mock_connection) { instance_double(Faraday::Connection) }
+  let(:mock_response) { instance_double(Faraday::Response) }
 
-  describe "#request" do
-    let(:path) { "/test-endpoint" }
+  before do
+    allow(Dhanhq::Support::FaradayConnection).to receive(:build).and_return(mock_connection)
+    # Reset the connection instance before each example
+    described_class.instance_variable_set(:@connection, nil)
+  end
+
+  describe ".connection" do
+    it "returns a Faraday connection instance" do
+      expect(described_class.connection).to eq(mock_connection)
+    end
+
+    it "reuses the same connection instance" do
+      first_connection = described_class.connection
+      second_connection = described_class.connection
+      expect(first_connection).to equal(second_connection)
+    end
+  end
+
+  describe ".request" do
+    let(:path) { "/test_endpoint" }
     let(:params) { { key: "value" } }
-    let(:response) { instance_double(Faraday::Response, status: status, body: response_body) }
-    let(:response_body) { { "message" => "success" }.to_json }
 
-    before do
-      allow(connection).to receive(:send).and_return(response)
-    end
-
-    context "when the response status is 2xx" do
-      let(:status) { 200 }
-
-      it "returns the parsed response body" do
-        result = base_api.send(:request, :get, path, params)
-        expect(result).to eq("message" => "success")
-      end
-    end
-
-    context "when the response status is 4xx" do
-      let(:status) { 400 }
-      let(:response_body) { { "message" => "Client error occurred" }.to_json }
-
-      it "raises a ClientError" do
-        expect do
-          base_api.send(:request, :post, path, params)
-        end.to raise_error(Dhanhq::Errors::ClientError, "Client error occurred")
-      end
-    end
-
-    context "when the response status is 5xx" do
-      let(:status) { 500 }
-      let(:response_body) { { "message" => "Internal server error" }.to_json }
-
-      it "raises a ServerError" do
-        expect do
-          base_api.send(:request, :post, path, params)
-        end.to raise_error(Dhanhq::Errors::ServerError, "Server error: Internal server error")
-      end
-    end
-
-    context "when an unexpected status code is returned" do
-      let(:status) { 600 }
-      let(:response_body) { {}.to_json }
-
-      it "raises a StandardError" do
-        expect do
-          base_api.send(:request, :post, path, params)
-        end.to raise_error(StandardError, "Unexpected response status: 600")
-      end
-    end
-
-    context "when a connection error occurs" do
+    context "when the response is successful" do
       before do
-        allow(connection).to receive(:send).and_raise(Faraday::ConnectionFailed.new("Connection error"))
+        allow(mock_response).to receive_messages(status: 200, body: '{"message":"success"}')
+        allow(mock_connection).to receive(:post).with(path, params.to_json).and_return(mock_response)
       end
 
-      it "raises a ClientError" do
+      it "makes a POST request and returns the parsed response" do
+        response = described_class.request(:post, path, params)
+        expect(response).to eq("message" => "success")
+      end
+    end
+
+    context "when the response has a client error (4xx)" do
+      before do
+        allow(mock_response).to receive_messages(status: 400, body: '{"message":"Bad Request"}')
+        allow(mock_connection).to receive(:post).with(path, params.to_json).and_return(mock_response)
+      end
+
+      it "raises a ClientError with the correct message" do
         expect do
-          base_api.send(:request, :get, path, params)
-        end.to raise_error(Dhanhq::Errors::ClientError, /Connection error/)
+          described_class.request(:post, path, params)
+        end.to raise_error(Dhanhq::Errors::ClientError, "Bad Request")
+      end
+    end
+
+    context "when the response has a server error (5xx)" do
+      before do
+        allow(mock_response).to receive_messages(status: 500, body: '{"error":"Internal Error","message":"Server Failure"}')
+        allow(mock_connection).to receive(:post).with(path, params.to_json).and_return(mock_response)
+      end
+
+      it "raises a ServerError with the correct message" do
+        expect do
+          described_class.request(:post, path, params)
+        end.to raise_error(Dhanhq::Errors::ServerError, "Server Error: 500 - Internal Error: Server Failure")
+      end
+    end
+
+    context "when there is a connection error" do
+      before do
+        allow(mock_connection).to receive(:post).and_raise(Faraday::ConnectionFailed, "Connection failed")
+      end
+
+      it "raises a ClientError with the correct message" do
+        expect do
+          described_class.request(:post, path, params)
+        end.to raise_error(Dhanhq::Errors::ClientError, "Connection error: Connection failed")
       end
     end
   end
 
-  describe "#json_params" do
-    context "when the method is GET" do
-      it "returns nil" do
-        result = base_api.send(:json_params, :get, { key: "value" })
-        expect(result).to be_nil
+  describe ".parse_response" do
+    let(:response) { instance_double(Faraday::Response) }
+
+    context "when the response status is 200" do
+      it "returns the parsed JSON body" do
+        allow(response).to receive_messages(status: 200, body: '{"key":"value"}')
+        result = described_class.send(:parse_response, response)
+        expect(result).to eq("key" => "value")
       end
     end
 
-    context "when the method is not GET" do
-      it "returns the parameters as a JSON string" do
-        result = base_api.send(:json_params, :post, { key: "value" })
-        expect(result).to eq({ key: "value" }.to_json)
+    context "when the response body is invalid JSON" do
+      it "returns an empty hash" do
+        allow(response).to receive_messages(status: 200, body: "invalid_json")
+        result = described_class.send(:parse_response, response)
+        expect(result).to eq({})
+      end
+    end
+
+    context "when the response is nil" do
+      it "raises a standard error for unexpected nil response" do
+        allow(response).to receive_messages(status: nil, body: nil)
+        expect do
+          described_class.send(:parse_response, response)
+        end.to raise_error(StandardError, /Unexpected response status/)
       end
     end
   end
 
-  describe "#validate" do
-    let(:validator_class) { double("ValidatorClass") }
-    let(:validator_instance) { instance_double(Validator) }
-
-    before do
-      allow(validator_class).to receive(:new).and_return(validator_instance)
+  describe ".validate" do
+    let(:validator_class) do
+      Class.new(Dry::Validation::Contract) do
+        params do
+          required(:key).filled(:string)
+        end
+      end
     end
 
-    context "when validation succeeds" do
-      before do
-        allow(validator_instance).to receive(:call).and_return(instance_double(Dry::Validation::Result,
-                                                                               failure?: false))
-      end
-
+    context "when validation passes" do
       it "does not raise an error" do
         expect do
-          base_api.send(:validate, { key: "value" }, validator_class)
+          described_class.send(:validate, { key: "value" }, validator_class)
         end.not_to raise_error
       end
     end
 
     context "when validation fails" do
-      before do
-        allow(validator_instance).to receive(:call).and_return(
-          instance_double(Dry::Validation::Result, failure?: true, errors: { key: ["is invalid"] })
-        )
-      end
-
-      it "raises a ValidationError" do
+      it "raises a ValidationError with details" do
         expect do
-          base_api.send(:validate, { key: "value" }, validator_class)
-        end.to raise_error(Dhanhq::Errors::ValidationError, { key: ["is invalid"] }.to_s)
-      end
-    end
-  end
-
-  describe "#parse_response" do
-    let(:response) { instance_double(Faraday::Response, status: status, body: response_body) }
-    let(:response_body) { { "message" => "success" }.to_json }
-
-    context "when the response status is 2xx" do
-      let(:status) { 200 }
-
-      it "returns the parsed response body" do
-        result = base_api.send(:parse_response, response)
-        expect(result).to eq("message" => "success")
-      end
-    end
-
-    context "when the response body is invalid JSON" do
-      let(:response_body) { "invalid json" }
-      let(:status) { 200 }
-
-      it "returns an empty hash" do
-        result = base_api.send(:parse_response, response)
-        expect(result).to eq({})
+          described_class.send(:validate, { key: nil }, validator_class)
+        end.to raise_error(Dhanhq::Errors::ValidationError, /key/)
       end
     end
   end

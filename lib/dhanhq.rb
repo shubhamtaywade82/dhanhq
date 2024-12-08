@@ -6,7 +6,10 @@ require "dry-validation"
 require_relative "dhanhq/version"
 require_relative "dhanhq/configuration"
 # require_relative "dhanhq/client"
-require_relative "dhanhq/errors"
+require_relative "dhanhq/errors/api_error"
+require_relative "dhanhq/errors/client_error"
+require_relative "dhanhq/errors/server_error"
+require_relative "dhanhq/errors/validation_error"
 require_relative "dhanhq/constants"
 
 # Support & Helpers

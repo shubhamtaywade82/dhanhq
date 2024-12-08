@@ -11,7 +11,7 @@ RSpec.describe Dhanhq::Validators::ForeverOrders::CancelForeverOrderValidator do
   context "when orderId is present" do
     it "validates successfully" do
       result = cancel_forever_order_validator.call(valid_params)
-      expect(result.success?).to eq(true)
+      expect(result.success?).to be(true)
     end
   end
 

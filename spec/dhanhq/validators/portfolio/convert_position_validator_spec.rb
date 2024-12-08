@@ -22,7 +22,7 @@ RSpec.describe Dhanhq::Validators::Portfolio::ConvertPositionValidator do
   context "when all required fields are valid" do
     it "validates successfully" do
       result = convert_position_validator.call(valid_params)
-      expect(result.success?).to eq(true)
+      expect(result.success?).to be(true)
     end
   end
 

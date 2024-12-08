@@ -24,7 +24,7 @@ RSpec.describe Dhanhq::Validators::Orders::PlaceSliceOrderValidator do
   context "when all required fields are valid" do
     it "validates successfully" do
       result = place_slice_order_validator.call(valid_params)
-      expect(result.success?).to eq(true)
+      expect(result.success?).to be(true)
     end
   end
 
@@ -32,7 +32,7 @@ RSpec.describe Dhanhq::Validators::Orders::PlaceSliceOrderValidator do
     it "returns an error for transactionType" do
       params = valid_params.merge(transactionType: "INVALID")
       result = place_slice_order_validator.call(params)
-      expect(result.errors[:transactionType]).to include("must be one of: #{Dhanhq::Constants::TRANSACTION_TYPES.join(', ')}")
+      expect(result.errors[:transactionType]).to include("must be one of: #{Dhanhq::Constants::TRANSACTION_TYPES.join(", ")}")
     end
   end
 
@@ -68,7 +68,7 @@ RSpec.describe Dhanhq::Validators::Orders::PlaceSliceOrderValidator do
         triggerPrice: 50.0
       )
       result = place_slice_order_validator.call(params)
-      expect(result.success?).to eq(true)
+      expect(result.success?).to be(true)
     end
   end
 end

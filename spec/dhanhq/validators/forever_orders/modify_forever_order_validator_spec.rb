@@ -24,7 +24,7 @@ RSpec.describe Dhanhq::Validators::ForeverOrders::ModifyForeverOrderValidator do
   context "when all required fields are valid" do
     it "validates successfully" do
       result = modify_forever_order_validator.call(valid_params)
-      expect(result.success?).to eq(true)
+      expect(result.success?).to be(true)
     end
   end
 

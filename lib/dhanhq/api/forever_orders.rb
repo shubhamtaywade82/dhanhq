@@ -4,7 +4,7 @@ module Dhanhq
   module Api
     # Handles endpoints related to Forever Orders, including creation, modification,
     # cancellation, and retrieval of Forever Orders.
-    class ForeverOrders < BaseApi
+    class ForeverOrders < Base
       class << self
         # Create a new Forever Order
         #

@@ -1,38 +1,53 @@
 # frozen_string_literal: true
 
+# lib/dhanhq/configuration.rb
+
 module Dhanhq
-  # Handles configuration settings for the DhanHQ gem.
+  # Manages the configuration for the DhanHQ client gem.
   class Configuration
-    # Default base URL for the API.
-    DEFAULT_BASE_URL = "https://api.dhan.co/v2"
-
-    # @return [String] The base URL for the API.
-    attr_accessor :base_url
-
-    # @return [String, nil] The client ID for authentication.
+    # @return [String] The client ID used for authenticating API requests.
     attr_accessor :client_id
 
-    # @return [String, nil] The access token for authentication.
+    # @return [String] The access token used for authenticating API requests.
     attr_accessor :access_token
 
+    # @return [Boolean] Flag to enable or disable the Data API functionality.
     attr_accessor :enable_data_api
 
     # Initializes the configuration with default values.
     def initialize
-      @base_url = DEFAULT_BASE_URL
-      @client_id = nil
-      @access_token = nil
+      @client_id = ENV.fetch("DHAN_CLIENT_ID", nil)
+      @access_token = ENV.fetch("DHAN_ACCESS_TOKEN", nil)
       @enable_data_api = false
     end
 
-    # Validates the configuration settings.
+    # Validates the configuration, ensuring required attributes are present.
     #
-    # @raise [ArgumentError] If any configuration value is missing.
+    # @raise [ArgumentError] if client_id or access_token is not configured.
     def validate!
-      raise ArgumentError, "BaseApi URL is missing" if @base_url.nil? || @base_url.empty?
-      raise ArgumentError, "Client ID is missing" if @client_id.nil? || @client_id.empty?
-      raise ArgumentError, "Access Token is missing" if @access_token.nil? || @access_token.empty?
-      raise ArgumentError, "Enable Data API must be boolean" unless [true, false].include?(enable_data_api)
+      raise ArgumentError, "Client ID is not configured" if @client_id.nil? || @client_id.empty?
+      raise ArgumentError, "Access Token is not configured" if @access_token.nil? || @access_token.empty?
+    end
+  end
+
+  class << self
+    # @return [Dhanhq::Configuration] The current configuration instance.
+    attr_accessor :configuration
+
+    # Configures the DhanHQ client gem.
+    #
+    # Example:
+    #   Dhanhq.configure do |config|
+    #     config.client_id = "your_client_id"
+    #     config.access_token = "your_access_token"
+    #     config.enable_data_api = true
+    #   end
+    #
+    # @yield [configuration] Provides the current configuration to the block.
+    def configure
+      self.configuration ||= Configuration.new
+      yield(configuration)
+      configuration.validate!
     end
   end
 end

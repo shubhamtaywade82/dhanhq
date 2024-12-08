@@ -10,7 +10,7 @@ module Dhanhq
     # - Modifying a pending order
     # - Cancelling an order
     # - Retrieving order details
-    class Orders < BaseApi
+    class Orders < Base
       class << self
         # Place a new order
         def place_order(params)

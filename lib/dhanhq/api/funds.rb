@@ -3,7 +3,7 @@
 module Dhanhq
   module Api
     # Handles endpoints related to Funds, including Margin Calculator and Fund Limit.
-    class Funds < BaseApi
+    class Funds < Base
       class << self
         # Retrieve trading account fund information, including available balance, utilized funds, etc.
         #

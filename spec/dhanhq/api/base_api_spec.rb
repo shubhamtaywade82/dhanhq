@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Dhanhq::Api::BaseApi do
+RSpec.describe Dhanhq::Api::Base do
   include DhanhqHelper
 
   let(:client) { instance_double(Dhanhq::Client) }

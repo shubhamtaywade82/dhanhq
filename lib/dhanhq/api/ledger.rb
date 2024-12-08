@@ -3,7 +3,7 @@
 module Dhanhq
   module Api
     # Handles endpoints related to Ledger and Trade History APIs
-    class Ledger < BaseApi
+    class Ledger < Base
       class << self
         # Retrieve Trading Account Ledger Report for a specific date range.
         #

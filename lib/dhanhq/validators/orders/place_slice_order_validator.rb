@@ -1,37 +1,48 @@
 # frozen_string_literal: true
 
-require "dry/validation"
+require_relative "../base_validator"
 
 module Dhanhq
   module Validators
     module Orders
-      # Validator for validating parameters required for placing a slice order.
-      # Ensures all required fields are present and properly formatted.
-      class PlaceSliceOrderValidator < Dry::Validation::Contract
+      # Validator for placing a slice order.
+      class PlaceSliceOrderValidator < Dhanhq::Validators::BaseValidator
+        # Schema definition
         params do
           required(:dhanClientId).filled(:string)
           optional(:correlationId).maybe(:string, max_size?: 25)
-          required(:transactionType).filled(:string, included_in?: %w[BUY SELL])
-          required(:exchangeSegment).filled(:string,
-                                            included_in?: %w[NSE_EQ NSE_FNO NSE_CURRENCY BSE_EQ BSE_FNO BSE_CURRENCY
-                                                             MCX_COMM])
-          required(:productType).filled(:string, included_in?: %w[CNC INTRADAY MARGIN MTF CO BO])
-          required(:orderType).filled(:string, included_in?: %w[LIMIT MARKET STOP_LOSS STOP_LOSS_MARKET])
-          required(:validity).filled(:string, included_in?: %w[DAY IOC])
+          required(:transactionType).filled(:string, included_in?: Dhanhq::Constants::TRANSACTION_TYPES)
+          required(:exchangeSegment).filled(:string, included_in?: Dhanhq::Constants::EXCHANGE_SEGMENTS.keys)
+          required(:productType).filled(:string, included_in?: Dhanhq::Constants::PRODUCT_TYPES)
+          required(:orderType).filled(:string, included_in?: Dhanhq::Constants::ORDER_TYPES)
+          required(:validity).filled(:string, included_in?: Dhanhq::Constants::VALIDITY_TYPES)
           required(:securityId).filled(:string)
           required(:quantity).filled(:integer, gt?: 0)
           optional(:disclosedQuantity).maybe(:integer, gteq?: 0)
           optional(:price).maybe(:float, gt?: 0)
           optional(:triggerPrice).maybe(:float, gt?: 0)
-          optional(:afterMarketOrder).maybe(:bool)
-          optional(:amoTime).maybe(:string, included_in?: %w[OPEN OPEN_30 OPEN_60 PRE_OPEN])
-          optional(:boProfitValue).maybe(:float, gt?: 0)
-          optional(:boStopLossValue).maybe(:float, gt?: 0)
         end
 
-        # Rule for amoTime required if afterMarketOrder is true
-        rule(:afterMarketOrder, :amoTime) do
-          key.failure("is required when afterMarketOrder is true") if values[:afterMarketOrder] && values[:amoTime].nil?
+        # Rule for `triggerPrice` required for specific order types
+        rule(:orderType, :triggerPrice) do
+          if %w[STOP_LOSS STOP_LOSS_MARKET].include?(values[:orderType]) &&
+             (values[:triggerPrice].nil? || values[:triggerPrice] <= 0)
+            key(:triggerPrice).failure("is required and must be greater than 0 for STOP_LOSS or STOP_LOSS_MARKET order types")
+          end
+        end
+
+        # Rule for `price` required for LIMIT orderType
+        rule(:orderType, :price) do
+          if values[:orderType] == "LIMIT" && (values[:price].nil? || values[:price] <= 0)
+            key(:price).failure("is required and must be greater than 0 for LIMIT order types")
+          end
+        end
+
+        # Rule to ensure `disclosedQuantity` does not exceed `quantity`
+        rule(:quantity, :disclosedQuantity) do
+          if values[:disclosedQuantity] && values[:disclosedQuantity] > values[:quantity]
+            key(:disclosedQuantity).failure("cannot exceed the total quantity")
+          end
         end
       end
     end

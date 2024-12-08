@@ -4,7 +4,7 @@ module Dhanhq
   module Api
     # Handles endpoints related to Portfolio, including holdings, positions,
     # and conversion of positions.
-    class Portfolio < BaseApi
+    class Portfolio < Base
       class << self
         # Retrieve the list of holdings in the demat account.
         #

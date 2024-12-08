@@ -7,6 +7,8 @@ require "webmock/rspec"
 require_relative "support/dhanhq_helper"
 require_relative "support/json_helper"
 
+$LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
+
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status"

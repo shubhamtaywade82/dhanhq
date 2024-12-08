@@ -18,7 +18,6 @@ module Dhanhq
           optional(:triggerPrice).maybe(:float, gt?: 0)
         end
 
-
         # # Some issue with the triggerPrice
         # # Rule for `triggerPrice` based on `transactionType`
         # rule(:transactionType, :triggerPrice) do

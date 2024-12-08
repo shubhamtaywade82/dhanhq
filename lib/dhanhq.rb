@@ -5,7 +5,7 @@ require "dry-validation"
 # Base Setup
 require_relative "dhanhq/version"
 require_relative "dhanhq/configuration"
-require_relative "dhanhq/client"
+# require_relative "dhanhq/client"
 require_relative "dhanhq/errors"
 require_relative "dhanhq/constants"
 
@@ -39,7 +39,7 @@ require_relative "dhanhq/validators/data_apis/marketfeed_ohlc_validator"
 # @see Dhanhq::API for API interaction methods
 module Dhanhq
   class << self
-    # @return [Dhanhq::Configuration] The configuration instance.
+    # @return [Dhanhq::Configuration] The current configuration instance.
     attr_accessor :configuration
 
     # Configures the gem.
@@ -52,6 +52,7 @@ module Dhanhq
     #   end
     #
     # @yield [Dhanhq::Configuration] Gives the configuration object to the block.
+    # Method to configure the gem
     def configure
       self.configuration ||= Configuration.new
       yield(configuration) if block_given?

@@ -7,11 +7,7 @@ RSpec.describe Dhanhq::Support::FaradayConnection do
   let(:connection) { described_class.build }
 
   before do
-    Dhanhq.configure do |config|
-      config.base_url = "https://api.dhan.co/v2"
-      config.client_id = "test_client_id"
-      config.access_token = "test_access_token"
-    end
+    configure_dhanhq
   end
 
   it "creates a Faraday connection" do
@@ -22,7 +18,7 @@ RSpec.describe Dhanhq::Support::FaradayConnection do
     headers = connection.headers
     expect(headers["Content-Type"]).to eq("application/json")
     expect(headers["access-token"]).to eq("test_access_token")
-    expect(headers["X-Client-Id"]).to eq("test_client_id")
+    expect(headers["client-id"]).to eq("test_client_id")
   end
 
   it "parses JSON responses automatically" do

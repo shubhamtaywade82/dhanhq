@@ -1,81 +1,99 @@
 # frozen_string_literal: true
 
+require_relative "../contracts/base_contract"
+
 module Dhanhq
-  module Api
+  module API
+    # Base class for API interactions with the Dhanhq API.
+    #
+    # The `Base` class provides common methods for interacting with the Dhanhq API, including
+    # `GET`, `POST`, `PUT`, and `DELETE` requests. It also includes parameter validation functionality
+    # using contracts.
+    #
+    # Example usage:
+    #   class Orders < Dhanhq::API::Base
+    #     def self.place_order(params)
+    #       validated_params = validate_with(Dhanhq::Contracts::PlaceOrderContract, params)
+    #       post("/orders", validated_params)
+    #     end
+    #   end
+    #
+    #   response = Orders.place_order({
+    #     transactionType: "BUY",
+    #     securityId: "1001",
+    #     quantity: 10,
+    #     price: 150.0
+    #   })
+    #
+    # @see Dhanhq::Client For HTTP request handling.
+    # @see https://dhanhq.co/docs/v2/ Dhanhq API Documentation
     class Base
       class << self
-        # Initializes or returns a shared connection instance.
+        # Performs a GET request to the API.
         #
-        # @return [Faraday::Connection] The Faraday connection instance.
-        def connection
-          @connection ||= Dhanhq::Support::FaradayConnection.build
+        # @param path [String] The API endpoint path.
+        # @param params [Hash] Query parameters for the GET request.
+        # @return [Hash, Array] The parsed JSON response.
+        def get(path, params = {})
+          client.get(path, params)
         end
 
-        # Sends an HTTP request using Faraday and processes the response.
+        # Performs a POST request to the API.
         #
-        # @param method [Symbol] The HTTP method (:get, :post, :put, :delete).
-        # @param path [String] The endpoint path (e.g., "/orders").
-        # @param params [Hash] The request parameters.
-        # @return [Hash] Parsed JSON response.
-        # @raise [Dhanhq::Errors::ClientError] for 4xx errors.
-        # @raise [Dhanhq::Errors::ServerError] for 5xx errors.
-        def request(method, path, params = {})
-          response = connection.send(method, path, params)
-          handle_response(response)
-        rescue Faraday::ConnectionFailed => e
-          raise Dhanhq::Errors::ClientError.new("Connection error: #{e.message}", nil, {})
+        # @param path [String] The API endpoint path.
+        # @param body [Hash] The body for the POST request.
+        # @return [Hash, Array] The parsed JSON response.
+        def post(path, body = {})
+          client.post(path, body)
+        end
+
+        # Performs a PUT request to the API.
+        #
+        # @param path [String] The API endpoint path.
+        # @param body [Hash] The body for the PUT request.
+        # @return [Hash, Array] The parsed JSON response.
+        def put(path, body = {})
+          client.put(path, body)
+        end
+
+        # Performs a DELETE request to the API.
+        #
+        # @param path [String] The API endpoint path.
+        # @param params [Hash] Query parameters for the DELETE request.
+        # @return [Hash, Array] The parsed JSON response.
+        def delete(path, params = {})
+          client.delete(path, params)
+        end
+
+        # Validates request parameters using a specified validation contract.
+        #
+        # @param contract_class [Class] The validation contract class.
+        # @param params [Hash] The parameters to validate.
+        # @return [Hash] The validated parameters.
+        # @raise [Dhanhq::Error] If validation fails.
+        #
+        # @example Validating parameters before making a request:
+        #   validated_params = validate_with(Dhanhq::Contracts::PlaceOrderContract, {
+        #     transactionType: "BUY",
+        #     securityId: "1001",
+        #     quantity: 10,
+        #     price: 150.0
+        #   })
+        #   post("/orders", validated_params)
+        def validate_with(contract_class, params)
+          validation = contract_class.new.call(params)
+          raise Dhanhq::Error, validation.errors.to_h unless validation.success?
+
+          validation.to_h
         end
 
         private
 
-        # Parses and validates the response from the API.
+        # Returns the Dhanhq API client.
         #
-        # @param response [Faraday::Response] The raw Faraday response object.
-        # @return [Hash] Parsed JSON response.
-        # @raise [Dhanhq::Errors::ClientError] for 4xx errors.
-        # @raise [Dhanhq::Errors::ServerError] for 5xx errors.
-        def handle_response(response)
-          body = response.body || {}
-
-          case response.status
-          when 200...300
-            body
-          when 400...499
-            raise Dhanhq::Errors::ClientError.new(
-              body["message"] || "Client error",
-              response.status,
-              body
-            )
-          when 500...599
-            raise Dhanhq::Errors::ServerError.new(
-              body["message"] || "Internal Server Error",
-              response.status,
-              body
-            )
-          else
-            raise StandardError, "Unexpected response status: #{response.status}"
-          end
-        end
-
-        # Formats request parameters for the API.
-        #
-        # @param method [Symbol] The HTTP method.
-        # @param params [Hash] The request parameters.
-        # @return [Hash, nil] Parameters formatted for the HTTP request body or query string.
-        def json_params(method, params)
-          return if method == :get
-
-          params.to_json
-        end
-
-        # Validates parameters using the specified validator class.
-        #
-        # @param params [Hash] The parameters to validate.
-        # @param validator_class [Class] The validator class to use.
-        # @raise [Dhanhq::Errors::ValidationError] if validation fails.
-        def validate(params, validator_class)
-          validation = validator_class.new.call(params)
-          raise Dhanhq::Errors::ValidationError, validation.errors.to_h if validation.failure?
+        # @return [Dhanhq::Client] The client instance for API requests.
+        def client
+          @client ||= Dhanhq::Client.new
         end
       end
     end

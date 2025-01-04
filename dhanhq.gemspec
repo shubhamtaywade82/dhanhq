@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors = ["Shubham Taywade"]
   spec.email = ["shubhamtaywade82@gmail.com"]
 
-  spec.summary = "Ruby wrapper for the DhanHQ Trading API"
-  spec.description = "A Ruby gem to interact with the DhanHQ Trading API for executing orders" \
+  spec.summary = "Ruby wrapper for the Dhanhq Trading API"
+  spec.description = "A Ruby gem to interact with the Dhanhq Trading API for executing orders" \
                      ", fetching market data, and building algo-based trading applications."
   spec.homepage = "https://github.com/shubhamtaywade82/dhanhq"
   spec.license = "MIT"
@@ -35,10 +35,13 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Runtime Dependencies
+  spec.add_dependency "activesupport"
+  spec.add_dependency "base64"
+  spec.add_dependency "bindata"
   spec.add_dependency "dry-validation"
   spec.add_dependency "faraday"
   spec.add_dependency "faraday_middleware"
-  spec.add_dependency "websocket-client-simple"
+  spec.add_dependency "websocket-driver"
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html

@@ -2,24 +2,48 @@ PATH
   remote: .
   specs:
     dhanhq (0.1.0)
+      activesupport
+      base64
+      bindata
       dry-validation
       faraday
       faraday_middleware
-      websocket-client-simple
+      websocket-driver
 
 GEM
   remote: https://rubygems.org/
   specs:
+    activesupport (8.0.1)
+      base64
+      benchmark (>= 0.3)
+      bigdecimal
+      concurrent-ruby (~> 1.0, >= 1.3.1)
+      connection_pool (>= 2.2.5)
+      drb
+      i18n (>= 1.6, < 2)
+      logger (>= 1.4.2)
+      minitest (>= 5.1)
+      securerandom (>= 0.3)
+      tzinfo (~> 2.0, >= 2.0.5)
+      uri (>= 0.13.1)
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
     ast (2.4.2)
     base64 (0.2.0)
+    benchmark (0.4.0)
     bigdecimal (3.1.8)
+    bindata (2.5.0)
     concurrent-ruby (1.3.4)
+    connection_pool (2.4.1)
     crack (1.0.0)
       bigdecimal
       rexml
+    date (3.4.1)
+    debug (1.10.0)
+      irb (~> 1.10)
+      reline (>= 0.3.8)
     diff-lcs (1.5.1)
+    drb (2.2.1)
     dry-configurable (1.2.0)
       dry-core (~> 1.0, < 2)
       zeitwerk (~> 2.6)
@@ -54,26 +78,59 @@ GEM
       dry-initializer (~> 3.0)
       dry-schema (>= 1.12, < 2)
       zeitwerk (~> 2.6)
-    event_emitter (0.2.6)
-    faraday (1.2.0)
-      multipart-post (>= 1.2, < 3)
-      ruby2_keywords
+    faraday (1.10.4)
+      faraday-em_http (~> 1.0)
+      faraday-em_synchrony (~> 1.0)
+      faraday-excon (~> 1.1)
+      faraday-httpclient (~> 1.0)
+      faraday-multipart (~> 1.0)
+      faraday-net_http (~> 1.0)
+      faraday-net_http_persistent (~> 1.0)
+      faraday-patron (~> 1.0)
+      faraday-rack (~> 1.0)
+      faraday-retry (~> 1.0)
+      ruby2_keywords (>= 0.0.4)
+    faraday-em_http (1.0.0)
+    faraday-em_synchrony (1.0.0)
+    faraday-excon (1.1.0)
+    faraday-httpclient (1.0.1)
+    faraday-multipart (1.0.4)
+      multipart-post (~> 2)
+    faraday-net_http (1.0.2)
+    faraday-net_http_persistent (1.2.0)
+    faraday-patron (1.0.0)
+    faraday-rack (1.0.0)
+    faraday-retry (1.0.3)
     faraday_middleware (1.2.1)
       faraday (~> 1.0)
     hashdiff (1.1.2)
-    json (2.8.2)
+    i18n (1.14.6)
+      concurrent-ruby (~> 1.0)
+    io-console (0.8.0)
+    irb (1.14.2)
+      rdoc (>= 4.0.0)
+      reline (>= 0.4.2)
+    json (2.9.0)
     language_server-protocol (3.17.0.3)
-    logger (1.6.1)
+    logger (1.6.2)
+    minitest (5.25.4)
     multipart-post (2.4.1)
     parallel (1.26.3)
     parser (3.3.6.0)
       ast (~> 2.4.1)
       racc
+    psych (5.2.1)
+      date
+      stringio
     public_suffix (6.0.1)
     racc (1.8.1)
     rainbow (3.1.1)
     rake (13.2.1)
+    rdoc (6.9.0)
+      psych (>= 4.0.0)
     regexp_parser (2.9.3)
+    reline (0.5.12)
+      io-console (~> 0.5)
     rexml (3.3.9)
     rspec (3.13.0)
       rspec-core (~> 3.13.0)
@@ -87,15 +144,15 @@ GEM
     rspec-mocks (3.13.2)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
-    rspec-support (3.13.1)
-    rubocop (1.69.0)
+    rspec-support (3.13.2)
+    rubocop (1.69.1)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
       parallel (~> 1.10)
       parser (>= 3.3.0.2)
       rainbow (>= 2.2.2, < 4.0)
-      regexp_parser (>= 2.4, < 3.0)
-      rubocop-ast (>= 1.36.1, < 2.0)
+      regexp_parser (>= 2.9.3, < 3.0)
+      rubocop-ast (>= 1.36.2, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 2.4.0, < 4.0)
     rubocop-ast (1.36.2)
@@ -106,20 +163,21 @@ GEM
       rubocop (~> 1.61)
     ruby-progressbar (1.13.0)
     ruby2_keywords (0.0.5)
+    securerandom (0.4.1)
+    stringio (3.1.2)
+    tzinfo (2.0.6)
+      concurrent-ruby (~> 1.0)
     unicode-display_width (3.1.2)
       unicode-emoji (~> 4.0, >= 4.0.4)
     unicode-emoji (4.0.4)
-    vcr (6.3.1)
-      base64
+    uri (1.0.2)
     webmock (3.24.0)
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
-    webrick (1.9.0)
-    websocket (1.2.11)
-    websocket-client-simple (0.8.0)
-      event_emitter
-      websocket
+    websocket-driver (0.7.6)
+      websocket-extensions (>= 0.1.0)
+    websocket-extensions (0.1.5)
     yard (0.9.37)
     zeitwerk (2.7.1)
 
@@ -128,15 +186,14 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  debug
   dhanhq!
   rake (~> 13.0)
   rspec (~> 3.0)
   rubocop (~> 1.21)
   rubocop-rake (~> 0.6.0)
   rubocop-rspec (~> 3.2)
-  vcr (~> 6.3)
   webmock (~> 3.24)
-  webrick (~> 1.9)
   yard (~> 0.9.37)
 
 BUNDLED WITH

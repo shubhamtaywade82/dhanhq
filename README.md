@@ -1,46 +1,206 @@
-# Dhanhq
+Dhanhq
+Dhanhq is a Ruby SDK to interact with the Dhan API for trading, portfolio management, market data retrieval, and more. This gem simplifies working with Dhan's extensive set of APIs, making it easier for developers to build trading applications.
 
-TODO: Delete this and the text below, and describe your gem
+Installation
+Add the gem to your Gemfile:
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/dhanhq`. To experiment with that code, run `bin/console` for an interactive prompt.
+```ruby
+gem 'dhanhq'
+```
 
-## Installation
+Then execute:
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+```ruby
+bundle install
+```
 
-Install the gem and add to the application's Gemfile by executing:
+Alternatively, install it directly:
 
-    $ bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+```ruby
+gem install dhanhq
+```
 
-If bundler is not being used to manage dependencies, install the gem by executing:
+Configuration
+Before making any API calls, configure the gem with your Dhan API credentials:
 
-    $ gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+```ruby
+require 'dhanhq'
 
-## Usage
 
-TODO: Write usage instructions here
+Dhanhq.configure do |config|
+  config.access_token = 'your_access_token'
+  config.client_id = 'your_client_id'
+end
+```
 
-## Development
+Replace your_access_token and your_client_id with your credentials provided by Dhan.
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+Usage
+The gem provides methods to interact with the major endpoints of the Dhan API.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+Orders
+Place a New Order
 
-## Contributing
+```ruby
+order_params = {
+  dhanClientId: "123456",
+  transactionType: "BUY",
+  exchangeSegment: "NSE_EQ",
+  productType: "INTRADAY",
+  orderType: "MARKET",
+  validity: "DAY",
+  securityId: "11536",
+  quantity: 10
+}
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/shubhamtaywade82/dhanhq. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/shubhamtaywade82/dhanhq/blob/master/CODE_OF_CONDUCT.md).
+response = Dhanhq::API::Trading::Orders.place(order_params)
+puts response
+```
 
-## License
+Fetch All Orders
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+```ruby
+response = Dhanhq::API::Trading::Orders.list
+puts response
+```
 
-## Code of Conduct
+Cancel an Order
 
-Everyone interacting in the Dhanhq project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/shubhamtaywade82/dhanhq/blob/master/CODE_OF_CONDUCT.md).
+```ruby
+order_id = "112111182198"
+response = Dhanhq::API::Trading::Orders.cancel(order_id)
+puts response
+```
 
-## Documentation
+Portfolio
+Retrieve Holdings
 
-This gem is fully documented using [YARD](https://yardoc.org). You can view the generated documentation locally by running:
+```ruby
+response = Dhanhq::API::Trading::Portfolio.holdings
+puts response
+```
 
-```bash
-yard server
+Retrieve Open Positions
+
+```ruby
+response = Dhanhq::API::Trading::Portfolio.positions
+puts response
+```
+
+Convert a Position
+
+```ruby
+convert_params = {
+  dhanClientId: "123456",
+  fromProductType: "INTRADAY",
+  toProductType: "CNC",
+  positionType: "LONG",
+  securityId: "11536",
+  quantity: 10,
+  exchangeSegment: "NSE_EQ"
+}
+
+response = Dhanhq::API::Trading::Portfolio.convert(convert_params)
+puts response
+```
+
+Market Data
+Fetch Last Traded Price (LTP)
+
+```ruby
+securities = { "NSE_EQ" => [11536, 49081] }
+response = Dhanhq::API::Data::MarketFeed.ltp(securities)
+puts response
+```
+
+Retrieve Historical Data
+
+```ruby
+historical_params = {
+  securityId: "11536",
+  exchangeSegment: "NSE_EQ",
+  fromDate: "2024-01-01",
+  toDate: "2024-02-01"
+}
+
+response = Dhanhq::API::Data::Historical.daily(historical_params)
+puts response
+```
+
+Forever Orders
+Create a Forever Order
+
+```ruby
+order_params = {
+  dhanClientId: "123456",
+  orderFlag: "SINGLE",
+  transactionType: "BUY",
+  exchangeSegment: "NSE_EQ",
+  productType: "CNC",
+  orderType: "LIMIT",
+  validity: "DAY",
+  securityId: "11536",
+  quantity: 10,
+  price: 1428,
+  triggerPrice: 1427
+}
+
+response = Dhanhq::API::Trading::ForeverOrders.create(order_params)
+puts response
+```
+
+Retrieve All Forever Orders
+
+```ruby
+response = Dhanhq::API::Trading::ForeverOrders.all
+puts response
+```
+
+Statements
+Fetch Ledger Report
+
+```ruby
+response = Dhanhq::API::Statements.ledger(from_date: "2024-01-01", to_date: "2024-01-31")
+puts response
+```
+
+Fetch Trade History
+
+```ruby
+response = Dhanhq::API::Statements.trade_history(from_date: "2024-01-01", to_date: "2024-01-31", page: 0)
+puts response
+```
+
+Development
+Clone the repository:
+
+```ruby
+git clone https://github.com/your-username/dhanhq.git
+```
+
+Install dependencies:
+
+```ruby
+bundle install
+```
+
+Run tests:
+
+```ruby
+rspec
+```
+
+Make your changes, then open a pull request.
+
+Contributing
+Contributions are welcome! To contribute:
+
+Fork the repository.
+Create a new branch for your feature or bug fix.
+Write your code, including tests.
+Submit a pull request.
+License
+This gem is available as open-source under the terms of the MIT License.
+
+Code of Conduct
+Everyone interacting in the Dhanhq project's codebases, issue trackers, chat rooms, and mailing lists is expected to follow the code of conduct.

@@ -1,91 +1,98 @@
 # frozen_string_literal: true
 
 module Dhanhq
-  module Api
-    # Handles endpoints related to Forever Orders, including creation, modification,
-    # cancellation, and retrieval of Forever Orders.
+  module API
+    # Provides methods to manage Forever Orders via Dhanhq's API.
+    #
+    # The `ForeverOrders` class extends `Dhanhq::API::Base` and offers functionality to create,
+    # modify, cancel, and retrieve Forever Orders. It uses validation contracts to ensure
+    # that request parameters meet the API's requirements.
+    #
+    # Example usage:
+    #   # Create a Forever Order
+    #   ForeverOrders.create({
+    #     dhanClientId: "123456",
+    #     orderType: "LIMIT",
+    #     productType: "CNC",
+    #     securityId: "1001",
+    #     price: 150.0,
+    #     quantity: 10
+    #   })
+    #
+    #   # Modify a Forever Order
+    #   ForeverOrders.modify("order123", {
+    #     price: 145.0,
+    #     quantity: 5
+    #   })
+    #
+    #   # Cancel a Forever Order
+    #   ForeverOrders.cancel("order123")
+    #
+    #   # Fetch all Forever Orders
+    #   ForeverOrders.all
+    #
+    # @see Dhanhq::API::Base For shared API methods.
+    # @see https://dhanhq.co/docs/v2/forever/ Dhanhq API Documentation
     class ForeverOrders < Base
       class << self
-        # Create a new Forever Order
+        # Creates a new Forever Order.
         #
-        # @param params [Hash] The request payload for creating a Forever Order
-        # @return [Hash] The response from the API
+        # @param order_params [Hash] The parameters for creating the Forever Order.
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If validation fails or the API returns an error.
         #
         # @example Create a Forever Order:
-        #   forever_orders.create_forever_order({
-        #     dhanClientId: '1000000132',
-        #     orderFlag: 'SINGLE',
-        #     transactionType: 'BUY',
-        #     exchangeSegment: 'NSE_EQ',
-        #     productType: 'CNC',
-        #     orderType: 'LIMIT',
-        #     validity: 'DAY',
-        #     securityId: '1333',
-        #     quantity: 5,
-        #     price: 1428,
-        #     triggerPrice: 1427
+        #   ForeverOrders.create({
+        #     dhanClientId: "123456",
+        #     orderType: "LIMIT",
+        #     productType: "CNC",
+        #     securityId: "1001",
+        #     price: 150.0,
+        #     quantity: 10
         #   })
-        def create_forever_order(params)
-          validate_params!(params, Dhanhq::Validators::ForeverOrders::CreateForeverOrderSchema)
-          request(:post, "/forever/orders", params)
+        def create(order_params)
+          validated_params = validate_with(Dhanhq::Contracts::PlaceForeverOrderContract, order_params)
+          post("/forever/orders", validated_params)
         end
 
-        # Modify an existing Forever Order
+        # Modifies an existing Forever Order.
         #
-        # @param order_id [String] The ID of the Forever Order to be modified
-        # @param params [Hash] The request payload for modifying the Forever Order
-        # @return [Hash] The response from the API
+        # @param order_id [String] The ID of the Forever Order to modify.
+        # @param modify_params [Hash] The parameters for modifying the Forever Order.
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If validation fails or the API returns an error.
         #
         # @example Modify a Forever Order:
-        #   forever_orders.modify_forever_order('5132208051112', {
-        #     dhanClientId: '1000000132',
-        #     orderFlag: 'SINGLE',
-        #     orderType: 'LIMIT',
-        #     legName: 'ENTRY_LEG',
-        #     quantity: 10,
-        #     price: 1421,
-        #     triggerPrice: 1420
+        #   ForeverOrders.modify("order123", {
+        #     price: 145.0,
+        #     quantity: 5
         #   })
-        def modify_forever_order(order_id, params)
-          params[:orderId] = order_id
-          validate_field(order_id, :orderId)
-          validate_params!(params, Dhanhq::Validators::ForeverOrders::ModifyForeverOrderSchema)
-          request(:put, "/forever/orders/#{order_id}", params)
+        def modify(order_id, modify_params)
+          validated_params = validate_with(Dhanhq::Contracts::ModifyForeverOrderContract, modify_params)
+          put("/forever/orders/#{order_id}", validated_params)
         end
 
-        # Cancel a Forever Order
+        # Cancels an existing Forever Order.
         #
-        # @param order_id [String] The ID of the Forever Order to be canceled
-        # @return [Hash] The response from the API
+        # @param order_id [String] The ID of the Forever Order to cancel.
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If the API returns an error.
         #
         # @example Cancel a Forever Order:
-        #   forever_orders.cancel_forever_order('5132208051112')
-        def cancel_forever_order(order_id)
-          validate_field(order_id, :orderId)
-          request(:delete, "/forever/orders/#{order_id}")
+        #   ForeverOrders.cancel("order123")
+        def cancel(order_id)
+          delete("/forever/orders/#{order_id}")
         end
 
-        # Retrieve all existing Forever Orders
+        # Retrieves all Forever Orders.
         #
-        # @return [Array<Hash>] An array of Forever Orders
+        # @return [Array<Hash>] A list of Forever Orders as parsed JSON objects.
+        # @raise [Dhanhq::Error] If the API returns an error.
         #
-        # @example Retrieve Forever Orders:
-        #   forever_orders.get_forever_orders
-        def forever_orders
-          request(:get, "/forever/orders")
-        end
-
-        private
-
-        # Validates a single field
-        #
-        # @param value [String] The value to validate
-        # @param field_name [Symbol] The field name for error reporting
-        def validate_field(value, field_name)
-          return if value.is_a?(String) && !value.strip.empty?
-
-          raise Dhanhq::Errors::ValidationError,
-                { field_name => "must be present and valid" }
+        # @example Fetch all Forever Orders:
+        #   ForeverOrders.all
+        def all
+          get("/forever/all")
         end
       end
     end

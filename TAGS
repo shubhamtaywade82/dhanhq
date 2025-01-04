@@ -1,0 +1,355 @@
+
+lib/dhanhq.rb,164
+module DhanhqDhanhq29,0
+    attr_accessor :configurationconfiguration31,0
+    attr_accessor :configurationconfiguration=31,0
+    def configureconfigure33,0
+
+lib/dhanhq/error.rb,123
+module DhanhqDhanhq3,0
+  class Error < StandardError; endError4,0
+  class Error < StandardError; endDhanhq::Error4,0
+
+lib/dhanhq/websockets/live_market_feed.rb,1287
+module DhanhqDhanhq10,0
+  module WebsocketsWebsockets11,0
+  module WebsocketsDhanhq::Websockets11,0
+    class LiveMarketFeedLiveMarketFeed12,0
+    class LiveMarketFeedDhanhq::Websockets::LiveMarketFeed12,0
+      MARKET_FEED_URL = "wss://api-feed.dhan.co"MARKET_FEED_URL13,0
+      MARKET_FEED_URL = "wss://api-feed.dhan.co"Dhanhq::Websockets::LiveMarketFeed::MARKET_FEED_URL13,0
+      attr_reader :client_id, :access_token, :subscribed_instruments, :urlclient_id15,0
+      attr_reader :client_id, :access_token, :subscribed_instruments, :urlaccess_token15,0
+      attr_reader :client_id, :access_token, :subscribed_instruments, :urlsubscribed_instruments15,0
+      attr_reader :client_id, :access_token, :subscribed_instruments, :urlurl15,0
+      def initializeinitialize17,0
+      def connectconnect26,0
+      def subscribe(instruments)subscribe40,0
+      def unsubscribe(instruments)unsubscribe53,0
+      def disconnectdisconnect66,0
+      def write(data)write73,0
+      def market_feed_urlmarket_feed_url79,0
+      def setup_callbackssetup_callbacks83,0
+      def listen_socketlisten_socket90,0
+      def send_message(message)send_message98,0
+      def handle_message(data)handle_message103,0
+      def start_ping_pongstart_ping_pong108,0
+
+lib/dhanhq/constants.rb,3309
+module DhanhqDhanhq3,0
+  module ConstantsConstants4,0
+  module ConstantsDhanhq::Constants4,0
+    TRANSACTION_TYPES = %w[BUY SELL].freezeTRANSACTION_TYPES5,0
+    TRANSACTION_TYPES = %w[BUY SELL].freezeDhanhq::Constants::TRANSACTION_TYPES5,0
+    EXCHANGE_SEGMENTS = %w[EXCHANGE_SEGMENTS7,0
+    EXCHANGE_SEGMENTS = %w[Dhanhq::Constants::EXCHANGE_SEGMENTS7,0
+    PRODUCT_TYPES = %w[PRODUCT_TYPES17,0
+    PRODUCT_TYPES = %w[Dhanhq::Constants::PRODUCT_TYPES17,0
+    ORDER_TYPES = %w[ORDER_TYPES26,0
+    ORDER_TYPES = %w[Dhanhq::Constants::ORDER_TYPES26,0
+    VALIDITY_TYPES = %w[DAY IOC].freezeVALIDITY_TYPES33,0
+    VALIDITY_TYPES = %w[DAY IOC].freezeDhanhq::Constants::VALIDITY_TYPES33,0
+    AMO_TIMINGS = %w[AMO_TIMINGS35,0
+    AMO_TIMINGS = %w[Dhanhq::Constants::AMO_TIMINGS35,0
+    ORDER_STATUSES = %w[ORDER_STATUSES42,0
+    ORDER_STATUSES = %w[Dhanhq::Constants::ORDER_STATUSES42,0
+    NSE = "NSE_EQ"NSE55,0
+    NSE = "NSE_EQ"Dhanhq::Constants::NSE55,0
+    BSE = "BSE_EQ"BSE56,0
+    BSE = "BSE_EQ"Dhanhq::Constants::BSE56,0
+    CUR = "NSE_CURRENCY"CUR57,0
+    CUR = "NSE_CURRENCY"Dhanhq::Constants::CUR57,0
+    MCX = "MCX_COMM"MCX58,0
+    MCX = "MCX_COMM"Dhanhq::Constants::MCX58,0
+    FNO = "NSE_FNO"FNO59,0
+    FNO = "NSE_FNO"Dhanhq::Constants::FNO59,0
+    NSE_FNO = "NSE_FNO"NSE_FNO60,0
+    NSE_FNO = "NSE_FNO"Dhanhq::Constants::NSE_FNO60,0
+    BSE_FNO = "BSE_FNO"BSE_FNO61,0
+    BSE_FNO = "BSE_FNO"Dhanhq::Constants::BSE_FNO61,0
+    INDEX = "IDX_I"INDEX62,0
+    INDEX = "IDX_I"Dhanhq::Constants::INDEX62,0
+    OPTION_SEGMENTS = [NSE, BSE, CUR, MCX, FNO, NSE_FNO, BSE_FNO, INDEX].freezeOPTION_SEGMENTS64,0
+    OPTION_SEGMENTS = [NSE, BSE, CUR, MCX, FNO, NSE_FNO, BSE_FNO, INDEX].freezeDhanhq::Constants::OPTION_SEGMENTS64,0
+    BUY = "BUY"BUY67,0
+    BUY = "BUY"Dhanhq::Constants::BUY67,0
+    SELL = "SELL"SELL68,0
+    SELL = "SELL"Dhanhq::Constants::SELL68,0
+    CNC = "CNC"CNC71,0
+    CNC = "CNC"Dhanhq::Constants::CNC71,0
+    INTRA = "INTRADAY"INTRA72,0
+    INTRA = "INTRADAY"Dhanhq::Constants::INTRA72,0
+    MARGIN = "MARGIN"MARGIN73,0
+    MARGIN = "MARGIN"Dhanhq::Constants::MARGIN73,0
+    CO = "CO"CO74,0
+    CO = "CO"Dhanhq::Constants::CO74,0
+    BO = "BO"BO75,0
+    BO = "BO"Dhanhq::Constants::BO75,0
+    MTF = "MTF"MTF76,0
+    MTF = "MTF"Dhanhq::Constants::MTF76,0
+    LIMIT = "LIMIT"LIMIT79,0
+    LIMIT = "LIMIT"Dhanhq::Constants::LIMIT79,0
+    MARKET = "MARKET"MARKET80,0
+    MARKET = "MARKET"Dhanhq::Constants::MARKET80,0
+    SL = "STOP_LOSS"SL81,0
+    SL = "STOP_LOSS"Dhanhq::Constants::SL81,0
+    SLM = "STOP_LOSS_MARKET"SLM82,0
+    SLM = "STOP_LOSS_MARKET"Dhanhq::Constants::SLM82,0
+    DAY = "DAY"DAY85,0
+    DAY = "DAY"Dhanhq::Constants::DAY85,0
+    IOC = "IOC"IOC86,0
+    IOC = "IOC"Dhanhq::Constants::IOC86,0
+    COMPACT_CSV_URL = "https://images.dhan.co/api-data/api-scrip-master.csv"COMPACT_CSV_URL89,0
+    COMPACT_CSV_URL = "https://images.dhan.co/api-data/api-scrip-master.csv"Dhanhq::Constants::COMPACT_CSV_URL89,0
+    DETAILED_CSV_URL = "https://images.dhan.co/api-data/api-scrip-master-detailed.csv"DETAILED_CSV_URL90,0
+    DETAILED_CSV_URL = "https://images.dhan.co/api-data/api-scrip-master-detailed.csv"Dhanhq::Constants::DETAILED_CSV_URL90,0
+
+lib/dhanhq/client.rb,765
+module DhanhqDhanhq6,0
+  class ClientClient20,0
+  class ClientDhanhq::Client20,0
+    BASE_URL = "https://api.dhan.co/v2"BASE_URL22,0
+    BASE_URL = "https://api.dhan.co/v2"Dhanhq::Client::BASE_URL22,0
+    attr_reader :connectionconnection27,0
+    def initializeinitialize35,0
+    def get(path, params = {})get50,0
+    def post(path, body = {})post60,0
+    def put(path, body = {})put70,0
+    def delete(path, params = {})delete80,0
+    def request(method, path, payload)request93,0
+    def headers(req)headers102,0
+    def prepare_payload(req, payload, method)prepare_payload109,0
+    def handle_response(response)handle_response123,0
+    def handle_error(response)handle_error132,0
+    def symbolize_keys(body)symbolize_keys145,0
+
+lib/dhanhq/version.rb,97
+module DhanhqDhanhq3,0
+  VERSION = "0.1.0"VERSION4,0
+  VERSION = "0.1.0"Dhanhq::VERSION4,0
+
+lib/dhanhq/api/portfolio.rb,285
+module DhanhqDhanhq4,0
+  module APIAPI5,0
+  module APIDhanhq::API5,0
+    class Portfolio < BasePortfolio33,0
+    class Portfolio < BaseDhanhq::API::Portfolio33,0
+        def holdingsholdings42,0
+        def positionspositions53,0
+        def convert(params)convert82,0
+
+lib/dhanhq/api/market_feed.rb,294
+module DhanhqDhanhq4,0
+  module APIAPI5,0
+  module APIDhanhq::API5,0
+    class MarketFeed < BaseMarketFeed40,0
+    class MarketFeed < BaseDhanhq::API::MarketFeed40,0
+        def ltp(instruments)ltp53,0
+        def ohlc(securities)ohlc78,0
+        def quote(securities)quote99,0
+
+lib/dhanhq/api/forever_orders.rb,355
+module DhanhqDhanhq3,0
+  module APIAPI4,0
+  module APIDhanhq::API4,0
+    class ForeverOrders < BaseForeverOrders36,0
+    class ForeverOrders < BaseDhanhq::API::ForeverOrders36,0
+        def create(order_params)create53,0
+        def modify(order_id, modify_params)modify70,0
+        def cancel(order_id)cancel83,0
+        def allall94,0
+
+lib/dhanhq/api/statements.rb,305
+module DhanhqDhanhq3,0
+  module APIAPI4,0
+  module APIDhanhq::API4,0
+    class Statements < BaseStatements20,0
+    class Statements < BaseDhanhq::API::Statements20,0
+        def ledger(from_date:, to_date:)ledger31,0
+        def trade_history(from_date:, to_date:, page: 0)trade_history45,0
+
+lib/dhanhq/api/funds.rb,250
+module DhanhqDhanhq5,0
+  module APIAPI6,0
+  module APIDhanhq::API6,0
+    class Funds < BaseFunds30,0
+    class Funds < BaseDhanhq::API::Funds30,0
+        def margin_calculator(params)margin_calculator57,0
+        def balancebalance69,0
+
+lib/dhanhq/api/base.rb,418
+module DhanhqDhanhq5,0
+  module APIAPI6,0
+  module APIDhanhq::API6,0
+    class BaseBase30,0
+    class BaseDhanhq::API::Base30,0
+        def get(path, params = {})get37,0
+        def post(path, body = {})post46,0
+        def put(path, body = {})put55,0
+        def delete(path, params = {})delete64,0
+        def validate_with(contract_class, params)validate_with83,0
+        def clientclient95,0
+
+lib/dhanhq/api/orders.rb,769
+module DhanhqDhanhq7,0
+  module APIAPI8,0
+  module APIDhanhq::API8,0
+    class Orders < BaseOrders37,0
+    class Orders < BaseDhanhq::API::Orders37,0
+        def listlist46,0
+        def find(order_id)find58,0
+        def find_by_correlation(correlation_id)find_by_correlation70,0
+        def tradestrades81,0
+        def trades_by_order(order_id)trades_by_order93,0
+        def place(order_params)place115,0
+        def entry(params)entry124,0
+        def stop_loss(params)stop_loss132,0
+        def exit(params)exit141,0
+        def slicing(params, slice_size: 100)slicing150,0
+        def modify(order_id, modify_params)modify175,0
+        def cancel(order_id)cancel188,0
+        def slicing_order(order_params)slicing_order209,0
+
+lib/dhanhq/api/option.rb,246
+module DhanhqDhanhq6,0
+  module APIAPI7,0
+  module APIDhanhq::API7,0
+    class Option < BaseOption32,0
+    class Option < BaseDhanhq::API::Option32,0
+        def chain(params)chain51,0
+        def expiry_list(params)expiry_list71,0
+
+lib/dhanhq/api/historical.rb,256
+module DhanhqDhanhq3,0
+  module APIAPI4,0
+  module APIDhanhq::API4,0
+    class Historical < BaseHistorical31,0
+    class Historical < BaseDhanhq::API::Historical31,0
+        def daily(params)daily52,0
+        def intraday(params)intraday77,0
+
+lib/dhanhq/configuration.rb,644
+module DhanhqDhanhq3,0
+  class ConfigurationConfiguration16,0
+  class ConfigurationDhanhq::Configuration16,0
+    attr_accessor :client_idclient_id21,0
+    attr_accessor :client_idclient_id=21,0
+    attr_accessor :access_tokenaccess_token26,0
+    attr_accessor :access_tokenaccess_token=26,0
+    attr_accessor :compact_csv_url, :detailed_csv_urlcompact_csv_url28,0
+    attr_accessor :compact_csv_url, :detailed_csv_urlcompact_csv_url=28,0
+    attr_accessor :compact_csv_url, :detailed_csv_urldetailed_csv_url28,0
+    attr_accessor :compact_csv_url, :detailed_csv_urldetailed_csv_url=28,0
+    def initializeinitialize36,0
+
+lib/dhanhq/parsers/binary_parser.rb,563
+module DhanhqDhanhq7,0
+  module ParsersParsers8,0
+  module ParsersDhanhq::Parsers8,0
+    class BinaryParserBinaryParser9,0
+    class BinaryParserDhanhq::Parsers::BinaryParser9,0
+      HEADER_SIZE = 8HEADER_SIZE10,0
+      HEADER_SIZE = 8Dhanhq::Parsers::BinaryParser::HEADER_SIZE10,0
+      def initialize(data)initialize12,0
+      def parseparse16,0
+      def parse_headerparse_header29,0
+      def parse_ticker(header)parse_ticker38,0
+      def parse_quote(header)parse_quote46,0
+      def parse_full_packet(header)parse_full_packet63,0
+
+lib/dhanhq/contracts/modify_order_contract.rb,258
+module DhanhqDhanhq3,0
+  module ContractsContracts4,0
+  module ContractsDhanhq::Contracts4,0
+    class ModifyOrderContract < BaseContractModifyOrderContract27,0
+    class ModifyOrderContract < BaseContractDhanhq::Contracts::ModifyOrderContract27,0
+
+lib/dhanhq/contracts/place_order_contract.rb,254
+module DhanhqDhanhq3,0
+  module ContractsContracts4,0
+  module ContractsDhanhq::Contracts4,0
+    class PlaceOrderContract < BaseContractPlaceOrderContract29,0
+    class PlaceOrderContract < BaseContractDhanhq::Contracts::PlaceOrderContract29,0
+
+lib/dhanhq/contracts/slice_order_contract.rb,254
+module DhanhqDhanhq3,0
+  module ContractsContracts4,0
+  module ContractsDhanhq::Contracts4,0
+    class SliceOrderContract < BaseContractSliceOrderContract28,0
+    class SliceOrderContract < BaseContractDhanhq::Contracts::SliceOrderContract28,0
+
+lib/dhanhq/contracts/historical_ohlc_contract.rb,270
+module DhanhqDhanhq3,0
+  module ContractsContracts4,0
+  module ContractsDhanhq::Contracts4,0
+    class HistoricalOHLCContract < BaseContractHistoricalOHLCContract24,0
+    class HistoricalOHLCContract < BaseContractDhanhq::Contracts::HistoricalOHLCContract24,0
+
+lib/dhanhq/contracts/modify_forever_order_contract.rb,286
+module DhanhqDhanhq3,0
+  module ContractsContracts4,0
+  module ContractsDhanhq::Contracts4,0
+    class ModifyForeverOrderContract < BaseContractModifyForeverOrderContract27,0
+    class ModifyForeverOrderContract < BaseContractDhanhq::Contracts::ModifyForeverOrderContract27,0
+
+lib/dhanhq/contracts/base_contract.rb,254
+module DhanhqDhanhq6,0
+  module ContractsContracts7,0
+  module ContractsDhanhq::Contracts7,0
+    class BaseContract < Dry::Validation::ContractBaseContract9,0
+    class BaseContract < Dry::Validation::ContractDhanhq::Contracts::BaseContract9,0
+
+lib/dhanhq/contracts/margin_calculator_contract.rb,278
+module DhanhqDhanhq3,0
+  module ContractsContracts4,0
+  module ContractsDhanhq::Contracts4,0
+    class MarginCalculatorContract < BaseContractMarginCalculatorContract25,0
+    class MarginCalculatorContract < BaseContractDhanhq::Contracts::MarginCalculatorContract25,0
+
+lib/dhanhq/contracts/expiry_list_contract.rb,467
+module DhanhqDhanhq3,0
+  module ContractsContracts4,0
+  module ContractsDhanhq::Contracts4,0
+    class ExpiryListContract < BaseContractExpiryListContract15,0
+    class ExpiryListContract < BaseContractDhanhq::Contracts::ExpiryListContract15,0
+      SEGMENTS = %w[IDX_I NSE_EQ NSE_FNO BSE_EQ BSE_FNO MCX_COMM].freezeSEGMENTS16,0
+      SEGMENTS = %w[IDX_I NSE_EQ NSE_FNO BSE_EQ BSE_FNO MCX_COMM].freezeDhanhq::Contracts::ExpiryListContract::SEGMENTS16,0
+
+lib/dhanhq/contracts/option_chain_contract.rb,472
+module DhanhqDhanhq3,0
+  module ContractsContracts4,0
+  module ContractsDhanhq::Contracts4,0
+    class OptionChainContract < BaseContractOptionChainContract16,0
+    class OptionChainContract < BaseContractDhanhq::Contracts::OptionChainContract16,0
+      SEGMENTS = %w[IDX_I NSE_EQ NSE_FNO BSE_EQ BSE_FNO MCX_COMM].freezeSEGMENTS17,0
+      SEGMENTS = %w[IDX_I NSE_EQ NSE_FNO BSE_EQ BSE_FNO MCX_COMM].freezeDhanhq::Contracts::OptionChainContract::SEGMENTS17,0
+
+lib/dhanhq/contracts/intraday_ohlc_contract.rb,262
+module DhanhqDhanhq3,0
+  module ContractsContracts4,0
+  module ContractsDhanhq::Contracts4,0
+    class IntradayOHLCContract < BaseContractIntradayOHLCContract23,0
+    class IntradayOHLCContract < BaseContractDhanhq::Contracts::IntradayOHLCContract23,0
+
+lib/dhanhq/contracts/market_quote_contract.rb,486
+module DhanhqDhanhq3,0
+  module ContractsContracts4,0
+  module ContractsDhanhq::Contracts4,0
+    class MarketQuoteContract < BaseContractMarketQuoteContract22,0
+    class MarketQuoteContract < BaseContractDhanhq::Contracts::MarketQuoteContract22,0
+      EXCHANGE_SEGMENTS = %w[NSE_EQ NSE_FNO BSE_EQ BSE_FNO MCX].freezeEXCHANGE_SEGMENTS23,0
+      EXCHANGE_SEGMENTS = %w[NSE_EQ NSE_FNO BSE_EQ BSE_FNO MCX].freezeDhanhq::Contracts::MarketQuoteContract::EXCHANGE_SEGMENTS23,0
+
+lib/dhanhq/contracts/place_forever_order_contract.rb,282
+module DhanhqDhanhq3,0
+  module ContractsContracts4,0
+  module ContractsDhanhq::Contracts4,0
+    class PlaceForeverOrderContract < BaseContractPlaceForeverOrderContract34,0
+    class PlaceForeverOrderContract < BaseContractDhanhq::Contracts::PlaceForeverOrderContract34,0
+
+lib/dhanhq/contracts/convert_position_contract.rb,274
+module DhanhqDhanhq3,0
+  module ContractsContracts4,0
+  module ContractsDhanhq::Contracts4,0
+    class ConvertPositionContract < BaseContractConvertPositionContract26,0
+    class ConvertPositionContract < BaseContractDhanhq::Contracts::ConvertPositionContract26,0

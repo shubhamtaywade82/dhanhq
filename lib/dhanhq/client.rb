@@ -2,85 +2,149 @@
 
 require "faraday"
 require "json"
+require "active_support/core_ext/hash/indifferent_access" # For HashWithIndifferentAccess
 
 module Dhanhq
-  # The Client class serves as the central point for interacting with the DhanHQ API.
+  # The `Client` class provides a wrapper around HTTP requests to interact with the Dhanhq API.
+  #
+  # It uses the Faraday library for HTTP requests, handles JSON encoding/decoding, and integrates
+  # with Dhanhq's API authentication via `client_id` and `access_token`.
+  #
+  # Example usage:
+  #   client = Dhanhq::Client.new
+  #   response = client.get("/orders", { page: 1 })
+  #
+  #   # For POST:
+  #   response = client.post("/orders", { securityId: "1001", quantity: 10 })
+  #
+  # @see https://dhanhq.co/docs/v2/ Dhanhq API Documentation
   class Client
+    # Base URL for the Dhanhq API.
+    BASE_URL = "https://api.dhan.co/v2"
+
+    # The Faraday connection object.
+    #
+    # @return [Faraday::Connection] The connection instance used for API requests.
     attr_reader :connection
 
+    # Initializes a new Dhanhq Client instance.
+    #
+    # @example Create a new client:
+    #   client = Dhanhq::Client.new
+    #
+    # @return [Dhanhq::Client] A new client instance configured for API requests.
     def initialize
-      validate_configuration!
-      @connection = setup_connection
+      @connection = Faraday.new(url: BASE_URL) do |conn|
+        conn.request :json # Automatically encode request bodies as JSON
+        conn.response :json, content_type: /\bjson$/ # Automatically parse JSON responses
+        conn.response :logger if ENV["DHAN_DEBUG"] # Enable logging if the environment variable is set
+        conn.adapter Faraday.default_adapter # Use Faraday's default HTTP adapter
+      end
     end
 
-    # Makes an API request
+    # Sends a GET request to the API.
     #
-    # @param method [Symbol] HTTP method (:get, :post, :put, :delete)
-    # @param endpoint [String] API endpoint (relative to base_url)
-    # @param params [Hash] Request parameters (optional)
-    # @return [Hash, Array] Parsed JSON response
-    # @raise [Dhanhq::Error] If the response indicates an error
-    def request(method, endpoint, params = {})
-      response = connection.public_send(method) do |req|
-        req.url endpoint
-        req.body = params.to_json unless params.empty?
-      end
+    # @param path [String] The API endpoint path.
+    # @param params [Hash] The query parameters for the GET request.
+    # @return [Hash, Array] The parsed JSON response.
+    # @raise [Dhanhq::Error] If the response indicates an error.
+    def get(path, params = {})
+      request(:get, path, params)
+    end
 
-      handle_response(response)
+    # Sends a POST request to the API.
+    #
+    # @param path [String] The API endpoint path.
+    # @param body [Hash] The body of the POST request.
+    # @return [Hash, Array] The parsed JSON response.
+    # @raise [Dhanhq::Error] If the response indicates an error.
+    def post(path, body = {})
+      request(:post, path, body)
+    end
+
+    # Sends a PUT request to the API.
+    #
+    # @param path [String] The API endpoint path.
+    # @param body [Hash] The body of the PUT request.
+    # @return [Hash, Array] The parsed JSON response.
+    # @raise [Dhanhq::Error] If the response indicates an error.
+    def put(path, body = {})
+      request(:put, path, body)
+    end
+
+    # Sends a DELETE request to the API.
+    #
+    # @param path [String] The API endpoint path.
+    # @param params [Hash] The query parameters for the DELETE request.
+    # @return [Hash, Array] The parsed JSON response.
+    # @raise [Dhanhq::Error] If the response indicates an error.
+    def delete(path, params = {})
+      request(:delete, path, params)
     end
 
     private
 
-    # Validates the configuration
-    def validate_configuration!
-      Dhanhq.configuration.validate!
+    # Handles HTTP requests to the Dhanhq API.
+    #
+    # @param method [Symbol] The HTTP method (e.g., :get, :post, :put, :delete).
+    # @param path [String] The API endpoint path.
+    # @param payload [Hash] The parameters or body for the request.
+    # @return [Hash, Array] The parsed JSON response.
+    # @raise [Dhanhq::Error] If the response indicates an error.
+    def request(method, path, payload)
+      response = connection.send(method) do |req|
+        req.url path
+        headers(req)
+        prepare_payload(req, payload, method)
+      end
+      handle_response(response)
     end
 
-    # Sets up the Faraday connection
-    def setup_connection
-      Faraday.new(url: Dhanhq.configuration.base_url) do |faraday|
-        faraday.headers["access-token"] = Dhanhq.configuration.access_token
-        faraday.headers["Content-Type"] = "application/json"
-        faraday.headers["Accept"] = "application/json"
-        faraday.request :json
-        faraday.response :json, content_type: /\bjson$/
-        faraday.adapter Faraday.default_adapter
+    def headers(req)
+      req.headers["access-token"] = Dhanhq.configuration.access_token
+      req.headers["client-id"] = Dhanhq.configuration.client_id
+      req.headers["Accept"] = "application/json"
+      req.headers["Content-Type"] = "application/json"
+    end
+
+    def prepare_payload(req, payload, method)
+      if method == :get
+        req.params = payload if payload.is_a?(Hash)
+      elsif payload.is_a?(Hash)
+        payload[:dhanClientId] = Dhanhq.configuration.client_id
+        req.body = payload.to_json
       end
     end
 
-    # Handles the API response
+    # Handles API responses and raises appropriate errors for unsuccessful requests.
     #
-    # @param response [Faraday::Response] The response object
-    # @return [Hash, Array] Parsed JSON if successful
-    # @raise [Dhanhq::Error] For non-successful responses
+    # @param response [Faraday::Response] The response object from the API.
+    # @return [Hash, Array] The parsed JSON response for successful requests.
+    # @raise [Dhanhq::Error] If the response status indicates an error.
     def handle_response(response)
-      raise Dhanhq::Error.new(status: response.status, body: response.body || "Unknown error") unless response.success?
-
-      parse_json(response.body)
+      case response.status
+      when 200..299
+        symbolize_keys(response.body)
+      else
+        handle_error(response)
+      end
     end
 
-    # Parses the response body as JSON
-    #
-    # @param body [String] The response body as a string
-    # @return [Hash, Array] Parsed JSON object
-    # @raise [Dhanhq::Error] If the body cannot be parsed
-    def parse_json(body)
-      return {} if body.nil? || body.empty?
-
-      JSON.parse(body.is_a?(String) ? body : body.to_json)
-    rescue JSON::ParserError => e
-      raise Dhanhq::Error.new(status: 500, body: "Invalid JSON response: #{e.message}")
+    def handle_error(response)
+      error_message = "#{response.status}: #{response.body}"
+      case response.status
+      when 400 then raise Dhanhq::Error, "Bad Request: #{error_message}"
+      when 401 then raise Dhanhq::Error, "Unauthorized: #{error_message}"
+      when 403 then raise Dhanhq::Error, "Forbidden: #{error_message}"
+      when 404 then raise Dhanhq::Error, "Not Found: #{error_message}"
+      when 500..599 then raise Dhanhq::Error, "Server Error: #{error_message}"
+      else raise Dhanhq::Error, "Unknown Error: #{error_message}"
+      end
     end
-  end
 
-  # Custom error class for handling API errors
-  class Error < StandardError
-    attr_reader :status, :body
-
-    def initialize(status:, body:)
-      @status = status
-      @body = body
-      super("API Error: #{status} - #{body}")
+    # Converts response body to a hash with indifferent access (string and symbol keys).
+    def symbolize_keys(body)
+      body.is_a?(Hash) ? body.with_indifferent_access : body
     end
   end
 end

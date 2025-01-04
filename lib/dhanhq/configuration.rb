@@ -1,24 +1,43 @@
 # frozen_string_literal: true
 
 module Dhanhq
-  # Manages the configuration for the DhanHQ client gem.
+  # Manages the configuration for the Dhanhq API client.
+  #
+  # The `Configuration` class allows developers to set and manage credentials required to interact
+  # with the Dhanhq API. It includes the `client_id` and `access_token` attributes, which are
+  # necessary for authenticating API requests.
+  #
+  # Example usage:
+  #   config = Dhanhq::Configuration.new
+  #   config.client_id = "your_client_id"
+  #   config.access_token = "your_access_token"
+  #
+  # @see https://dhanhq.co/docs/v2/ Dhanhq API Documentation
   class Configuration
-    attr_accessor :base_url, :client_id, :access_token, :enable_data_api
+    include Dhanhq::Constants
+    # The client ID for the Dhanhq API.
+    #
+    # @return [String, nil] The client ID or `nil` if not set.
+    attr_accessor :client_id
 
-    # Initializes the configuration with default values.
+    # The access token for the Dhanhq API.
+    #
+    # @return [String, nil] The access token or `nil` if not set.
+    attr_accessor :access_token
+
+    attr_accessor :compact_csv_url, :detailed_csv_url
+
+    # Initializes a new configuration instance with `nil` values for `client_id` and `access_token`.
+    #
+    # @example Initialize configuration:
+    #   config = Dhanhq::Configuration.new
+    #   config.client_id = "your_client_id"
+    #   config.access_token = "your_access_token"
     def initialize
-      @base_url = Dhanhq::Constants::BASE_URL
       @client_id = nil
       @access_token = nil
-      @enable_data_api = false
-    end
-
-    # Validates the configuration, ensuring required attributes are present.
-    #
-    # @raise [ArgumentError] if client_id or access_token is not configured.
-    def validate!
-      raise ArgumentError, "Client ID must be configured" if client_id.nil? || client_id.empty?
-      raise ArgumentError, "Access Token must be configured" if access_token.nil? || access_token.empty?
+      @compact_csv_url = COMPACT_CSV_URL
+      @detailed_csv_url = DETAILED_CSV_URL
     end
   end
 end

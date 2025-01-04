@@ -1,0 +1,2572 @@
+# File: lib/dhanhq/api/base.rb
+# frozen_string_literal: true
+
+require_relative "../contracts/base_contract"
+
+module Dhanhq
+  module API
+    # Base class for API interactions with the Dhanhq API.
+    #
+    # The `Base` class provides common methods for interacting with the Dhanhq API, including
+    # `GET`, `POST`, `PUT`, and `DELETE` requests. It also includes parameter validation functionality
+    # using contracts.
+    #
+    # Example usage:
+    #   class Orders < Dhanhq::API::Base
+    #     def self.place_order(params)
+    #       validated_params = validate_with(Dhanhq::Contracts::PlaceOrderContract, params)
+    #       post("/orders", validated_params)
+    #     end
+    #   end
+    #
+    #   response = Orders.place_order({
+    #     transactionType: "BUY",
+    #     securityId: "1001",
+    #     quantity: 10,
+    #     price: 150.0
+    #   })
+    #
+    # @see Dhanhq::Client For HTTP request handling.
+    # @see https://dhanhq.co/docs/v2/ Dhanhq API Documentation
+    class Base
+      class << self
+        # Performs a GET request to the API.
+        #
+        # @param path [String] The API endpoint path.
+        # @param params [Hash] Query parameters for the GET request.
+        # @return [Hash, Array] The parsed JSON response.
+        def get(path, params = {})
+          client.get(path, params)
+        end
+
+        # Performs a POST request to the API.
+        #
+        # @param path [String] The API endpoint path.
+        # @param body [Hash] The body for the POST request.
+        # @return [Hash, Array] The parsed JSON response.
+        def post(path, body = {})
+          client.post(path, body)
+        end
+
+        # Performs a PUT request to the API.
+        #
+        # @param path [String] The API endpoint path.
+        # @param body [Hash] The body for the PUT request.
+        # @return [Hash, Array] The parsed JSON response.
+        def put(path, body = {})
+          client.put(path, body)
+        end
+
+        # Performs a DELETE request to the API.
+        #
+        # @param path [String] The API endpoint path.
+        # @param params [Hash] Query parameters for the DELETE request.
+        # @return [Hash, Array] The parsed JSON response.
+        def delete(path, params = {})
+          client.delete(path, params)
+        end
+
+        # Validates request parameters using a specified validation contract.
+        #
+        # @param contract_class [Class] The validation contract class.
+        # @param params [Hash] The parameters to validate.
+        # @return [Hash] The validated parameters.
+        # @raise [Dhanhq::Error] If validation fails.
+        #
+        # @example Validating parameters before making a request:
+        #   validated_params = validate_with(Dhanhq::Contracts::PlaceOrderContract, {
+        #     transactionType: "BUY",
+        #     securityId: "1001",
+        #     quantity: 10,
+        #     price: 150.0
+        #   })
+        #   post("/orders", validated_params)
+        def validate_with(contract_class, params)
+          validation = contract_class.new.call(params)
+          raise Dhanhq::Error, validation.errors.to_h unless validation.success?
+
+          validation.to_h
+        end
+
+        private
+
+        # Returns the Dhanhq API client.
+        #
+        # @return [Dhanhq::Client] The client instance for API requests.
+        def client
+          @client ||= Dhanhq::Client.new
+        end
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/api/forever_orders.rb
+# frozen_string_literal: true
+
+module Dhanhq
+  module API
+    # Provides methods to manage Forever Orders via Dhanhq's API.
+    #
+    # The `ForeverOrders` class extends `Dhanhq::API::Base` and offers functionality to create,
+    # modify, cancel, and retrieve Forever Orders. It uses validation contracts to ensure
+    # that request parameters meet the API's requirements.
+    #
+    # Example usage:
+    #   # Create a Forever Order
+    #   ForeverOrders.create({
+    #     dhanClientId: "123456",
+    #     orderType: "LIMIT",
+    #     productType: "CNC",
+    #     securityId: "1001",
+    #     price: 150.0,
+    #     quantity: 10
+    #   })
+    #
+    #   # Modify a Forever Order
+    #   ForeverOrders.modify("order123", {
+    #     price: 145.0,
+    #     quantity: 5
+    #   })
+    #
+    #   # Cancel a Forever Order
+    #   ForeverOrders.cancel("order123")
+    #
+    #   # Fetch all Forever Orders
+    #   ForeverOrders.all
+    #
+    # @see Dhanhq::API::Base For shared API methods.
+    # @see https://dhanhq.co/docs/v2/forever/ Dhanhq API Documentation
+    class ForeverOrders < Base
+      class << self
+        # Creates a new Forever Order.
+        #
+        # @param order_params [Hash] The parameters for creating the Forever Order.
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If validation fails or the API returns an error.
+        #
+        # @example Create a Forever Order:
+        #   ForeverOrders.create({
+        #     dhanClientId: "123456",
+        #     orderType: "LIMIT",
+        #     productType: "CNC",
+        #     securityId: "1001",
+        #     price: 150.0,
+        #     quantity: 10
+        #   })
+        def create(order_params)
+          validated_params = validate_with(Dhanhq::Contracts::PlaceForeverOrderContract, order_params)
+          post("/forever/orders", validated_params)
+        end
+
+        # Modifies an existing Forever Order.
+        #
+        # @param order_id [String] The ID of the Forever Order to modify.
+        # @param modify_params [Hash] The parameters for modifying the Forever Order.
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If validation fails or the API returns an error.
+        #
+        # @example Modify a Forever Order:
+        #   ForeverOrders.modify("order123", {
+        #     price: 145.0,
+        #     quantity: 5
+        #   })
+        def modify(order_id, modify_params)
+          validated_params = validate_with(Dhanhq::Contracts::ModifyForeverOrderContract, modify_params)
+          put("/forever/orders/#{order_id}", validated_params)
+        end
+
+        # Cancels an existing Forever Order.
+        #
+        # @param order_id [String] The ID of the Forever Order to cancel.
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If the API returns an error.
+        #
+        # @example Cancel a Forever Order:
+        #   ForeverOrders.cancel("order123")
+        def cancel(order_id)
+          delete("/forever/orders/#{order_id}")
+        end
+
+        # Retrieves all Forever Orders.
+        #
+        # @return [Array<Hash>] A list of Forever Orders as parsed JSON objects.
+        # @raise [Dhanhq::Error] If the API returns an error.
+        #
+        # @example Fetch all Forever Orders:
+        #   ForeverOrders.all
+        def all
+          get("/forever/all")
+        end
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/api/funds.rb
+# frozen_string_literal: true
+
+require_relative "../contracts/margin_calculator_contract"
+
+module Dhanhq
+  module API
+    # Provides methods for managing funds and margin calculations via Dhanhq's API.
+    #
+    # The `Funds` class extends `Dhanhq::API::Base` and provides methods to:
+    # - Retrieve margin requirements for an order.
+    # - Retrieve trading account fund information.
+    #
+    # Example usage:
+    #   # Calculate margin requirements
+    #   margin_info = Funds.margin_calculator({
+    #     dhanClientId: "123456",
+    #     exchangeSegment: "NSE_EQ",
+    #     transactionType: "BUY",
+    #     quantity: 10,
+    #     productType: "CNC",
+    #     securityId: "1001",
+    #     price: 150.0
+    #   })
+    #
+    #   # Retrieve fund balance
+    #   account_balance = Funds.balance
+    #
+    # @see Dhanhq::API::Base For shared API methods.
+    # @see https://dhanhq.co/docs/v2/funds/ Dhanhq API Documentation
+    class Funds < Base
+      class << self
+        # Retrieves margin requirements for an order.
+        #
+        # @param params [Hash] The request parameters for the margin calculation.
+        #   Required keys:
+        #   - `dhanClientId` [String] Unique client identifier.
+        #   - `exchangeSegment` [String] Segment of the exchange.
+        #   - `transactionType` [String] Type of transaction (BUY/SELL).
+        #   - `quantity` [Integer] Quantity of the trade.
+        #   - `productType` [String] Product type for the order.
+        #   - `securityId` [String] Unique identifier for the security.
+        #   - `price` [Float] Price of the trade.
+        #
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If validation fails or the API returns an error.
+        #
+        # @example Calculate margin requirements:
+        #   margin_info = Funds.margin_calculator({
+        #     dhanClientId: "123456",
+        #     exchangeSegment: "NSE_EQ",
+        #     transactionType: "BUY",
+        #     quantity: 10,
+        #     productType: "CNC",
+        #     securityId: "1001",
+        #     price: 150.0
+        #   })
+        def margin_calculator(params)
+          validated_params = validate_with(Dhanhq::Contracts::MarginCalculatorContract, params)
+          post("/margincalculator", validated_params)
+        end
+
+        # Retrieves trading account fund information.
+        #
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If the API returns an error.
+        #
+        # @example Retrieve fund balance:
+        #   account_balance = Funds.balance
+        def balance
+          get("/fundlimit")
+        end
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/api/historical.rb
+# frozen_string_literal: true
+
+module Dhanhq
+  module API
+    # Provides methods to retrieve historical data via Dhanhq's API.
+    #
+    # The `Historical` class extends `Dhanhq::API::Base` and includes methods to:
+    # - Retrieve daily historical data.
+    # - Retrieve intraday historical data.
+    #
+    # Example usage:
+    #   # Retrieve daily historical data
+    #   historical_data = Historical.daily({
+    #     securityId: "1001",
+    #     exchangeSegment: "NSE_EQ",
+    #     fromDate: "2023-01-01",
+    #     toDate: "2023-12-31"
+    #   })
+    #
+    #   # Retrieve intraday historical data
+    #   intraday_data = Historical.intraday({
+    #     securityId: "1001",
+    #     exchangeSegment: "NSE_EQ",
+    #     interval: "15",
+    #     fromDate: "2023-01-01",
+    #     toDate: "2023-01-01"
+    #   })
+    #
+    # @see Dhanhq::API::Base For shared API methods.
+    # @see https://dhanhq.co/docs/v2/historical-data/ Dhanhq API Documentation
+    class Historical < Base
+      class << self
+        # Retrieves daily historical data.
+        #
+        # @param params [Hash] The request parameters for retrieving daily historical data.
+        #   Required keys:
+        #   - `securityId` [String] Unique identifier for the security.
+        #   - `exchangeSegment` [String] Segment of the exchange.
+        #   - `fromDate` [String] Start date in `YYYY-MM-DD` format.
+        #   - `toDate` [String] End date in `YYYY-MM-DD` format.
+        #
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If the API returns an error.
+        #
+        # @example Retrieve daily historical data:
+        #   historical_data = Historical.daily({
+        #     securityId: "1001",
+        #     exchangeSegment: "NSE_EQ",
+        #     fromDate: "2023-01-01",
+        #     toDate: "2023-12-31"
+        #   })
+        def daily(params)
+          post("/charts/historical", params)
+        end
+
+        # Retrieves intraday historical data.
+        #
+        # @param params [Hash] The request parameters for retrieving intraday historical data.
+        #   Required keys:
+        #   - `securityId` [String] Unique identifier for the security.
+        #   - `exchangeSegment` [String] Segment of the exchange.
+        #   - `interval` [String] Interval for the data in minutes (e.g., "1", "5", "15").
+        #   - `fromDate` [String] Start date in `YYYY-MM-DD` format.
+        #   - `toDate` [String] End date in `YYYY-MM-DD` format.
+        #
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If the API returns an error.
+        #
+        # @example Retrieve intraday historical data:
+        #   intraday_data = Historical.intraday({
+        #     securityId: "1001",
+        #     exchangeSegment: "NSE_EQ",
+        #     interval: "15",
+        #     fromDate: "2023-01-01",
+        #     toDate: "2023-01-01"
+        #   })
+        def intraday(params)
+          post("/charts/intraday", params)
+        end
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/api/market_feed.rb
+# frozen_string_literal: true
+
+require_relative "../contracts/market_quote_contract"
+module Dhanhq
+  module API
+    # Provides methods to retrieve market feed data via Dhanhq's API.
+    #
+    # The `MarketFeed` class extends `Dhanhq::API::Base` and includes methods to:
+    # - Fetch Last Traded Price (LTP).
+    # - Fetch Open-High-Low-Close (OHLC) data.
+    # - Fetch detailed market quotes.
+    #
+    # Example usage:
+    #   # Fetch Last Traded Price
+    #   ltp_data = MarketFeed.ltp({
+    #     data: {
+    #       "NSE_EQ" => [12345, 67890],
+    #       "BSE_EQ" => [11223]
+    #     }
+    #   })
+    #
+    #   # Fetch OHLC data
+    #   ohlc_data = MarketFeed.ohlc({
+    #     data: {
+    #       "NSE_EQ" => [12345],
+    #       "MCX_COMM" => [67890]
+    #     }
+    #   })
+    #
+    #   # Fetch market quotes
+    #   quote_data = MarketFeed.quote({
+    #     data: {
+    #       "NSE_EQ" => [12345]
+    #     }
+    #   })
+    #
+    # @see Dhanhq::API::Base For shared API methods.
+    # @see Dhanhq::Contracts::MarketQuoteContract For validation rules.
+    # @see https://dhanhq.co/docs/v2/market-quote/ Dhanhq API Documentation
+    class MarketFeed < Base
+      class << self
+        # Fetches the Last Traded Price (LTP) for the given securities.
+        #
+        # @param instruments [Hash] The request parameters for fetching LTP.
+        #   Example:
+        #     {
+        #       "NSE_EQ" => [11536],
+        #       "NSE_FNO" => [49081, 49082]
+        #     }
+        #
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If validation fails or the API returns an error.
+        def ltp(instruments)
+          # Validate the instruments using the MarketQuoteContract
+          validated_params = validate_with(Dhanhq::Contracts::MarketQuoteContract, { data: instruments })
+
+          # Send the API request
+          post("/v2/marketfeed/ltp", validated_params[:data])
+        end
+
+        # Fetches the Open-High-Low-Close (OHLC) data for the given securities.
+        #
+        # @param securities [Hash] The request parameters for fetching OHLC data.
+        #   Required keys:
+        #   - `data` [Hash{String => Array<Integer>}] A hash where keys are exchange segments
+        #      (e.g., "NSE_EQ", "MCX_COMM") and values are arrays of security IDs.
+        #
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If validation fails or the API returns an error.
+        #
+        # @example Fetch OHLC data:
+        #   ohlc_data = MarketFeed.ohlc({
+        #     data: {
+        #       "NSE_EQ" => [12345],
+        #       "MCX_COMM" => [67890]
+        #     }
+        #   })
+        def ohlc(securities)
+          validated_params = validate_with(Dhanhq::Contracts::MarketQuoteContract, { data: securities })
+          post("/v2/marketfeed/ohlc", validated_params[:data])
+        end
+
+        # Fetches detailed market quotes for the given securities.
+        #
+        # @param securities [Hash] The request parameters for fetching market quotes.
+        #   Required keys:
+        #   - `data` [Hash{String => Array<Integer>}] A hash where keys are exchange segments
+        #      (e.g., "NSE_EQ") and values are arrays of security IDs.
+        #
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If the API returns an error.
+        #
+        # @example Fetch market quotes:
+        #   quote_data = MarketFeed.quote({
+        #     data: {
+        #       "NSE_EQ" => [12345]
+        #     }
+        #   })
+        def quote(securities)
+          validated_params = validate_with(Dhanhq::Contracts::MarketQuoteContract, { data: securities })
+          post("/v2/marketfeed/quote", validated_params[:data])
+        end
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/api/option.rb
+# frozen_string_literal: true
+
+require_relative "../contracts/option_chain_contract"
+require_relative "../contracts/expiry_list_contract"
+
+module Dhanhq
+  module API
+    # Provides methods to interact with option data via Dhanhq's API.
+    #
+    # The `Option` class extends `Dhanhq::API::Base` and includes methods to:
+    # - Retrieve the Option Chain data.
+    # - Retrieve the Expiry List for a given underlying security.
+    #
+    # Example usage:
+    #   # Fetch the Option Chain
+    #   option_chain = Option.chain({
+    #     UnderlyingScrip: 12345,
+    #     UnderlyingSeg: "NSE_FNO",
+    #     Expiry: "2024-12-31"
+    #   })
+    #
+    #   # Fetch the Expiry List
+    #   expiry_list = Option.expiry_list({
+    #     UnderlyingScrip: 12345,
+    #     UnderlyingSeg: "NSE_FNO"
+    #   })
+    #
+    # @see Dhanhq::API::Base For shared API methods.
+    # @see Dhanhq::Contracts::OptionChainContract For Option Chain validation.
+    # @see Dhanhq::Contracts::ExpiryListContract For Expiry List validation.
+    # @see https://dhanhq.co/docs/v2/option-chain/ Dhanhq API Documentation
+    class Option < Base
+      class << self
+        # Fetches the Option Chain data for a given underlying instrument.
+        #
+        # @param params [Hash] The request parameters for the Option Chain.
+        #   Required keys:
+        #   - `UnderlyingScrip` [Integer] Security ID of the underlying instrument.
+        #   - `UnderlyingSeg` [String] Exchange & segment of the underlying (e.g., "IDX_I").
+        #   - `Expiry` [String] Expiry date in `YYYY-MM-DD` format.
+        #
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If validation fails or the API returns an error.
+        #
+        # @example Fetch the Option Chain:
+        #   option_chain = Option.chain({
+        #     UnderlyingScrip: 13,
+        #     UnderlyingSeg: "IDX_I",
+        #     Expiry: "2024-10-31"
+        #   })
+        def chain(params)
+          validated_params = validate_with(Dhanhq::Contracts::OptionChainContract, params)
+          post("/v2/optionchain", validated_params)
+        end
+
+        # Fetches the Expiry List for a given underlying instrument.
+        #
+        # @param params [Hash] The request parameters for the Expiry List.
+        #   Required keys:
+        #   - `UnderlyingScrip` [Integer] Security ID of the underlying instrument.
+        #   - `UnderlyingSeg` [String] Exchange & segment of the underlying (e.g., "IDX_I").
+        #
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If validation fails or the API returns an error.
+        #
+        # @example Fetch the Expiry List:
+        #   expiry_list = Option.expiry_list({
+        #     UnderlyingScrip: 13,
+        #     UnderlyingSeg: "IDX_I"
+        #   })
+        def expiry_list(params)
+          validated_params = validate_with(Dhanhq::Contracts::ExpiryListContract, params)
+          post("/v2/optionchain/expirylist", validated_params)
+        end
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/api/orders.rb
+# frozen_string_literal: true
+
+require_relative "../contracts/place_order_contract"
+require_relative "../contracts/modify_order_contract"
+require_relative "../contracts/slice_order_contract"
+
+module Dhanhq
+  module API
+    # Provides methods to manage orders via Dhanhq's API.
+    #
+    # The `Orders` class extends `Dhanhq::API::Base` and includes methods to:
+    # - Retrieve orders and trades.
+    # - Place, modify, and cancel orders.
+    # - Handle sliced orders.
+    #
+    # Example usage:
+    #   # Retrieve all orders for the day
+    #   orders = Orders.list
+    #
+    #   # Place a new order
+    #   new_order = Orders.place({
+    #     dhanClientId: "123456",
+    #     transactionType: "BUY",
+    #     exchangeSegment: "NSE_EQ",
+    #     productType: "CNC",
+    #     orderType: "LIMIT",
+    #     securityId: "1001",
+    #     quantity: 10,
+    #     price: 150.0
+    #   })
+    #
+    # @see Dhanhq::API::Base For shared API methods.
+    # @see Dhanhq::Contracts::PlaceOrderContract For Place Order validation.
+    # @see Dhanhq::Contracts::ModifyOrderContract For Modify Order validation.
+    # @see Dhanhq::Contracts::SliceOrderContract For Slice Order validation.
+    # @see https://dhanhq.co/docs/v2/orders/ Dhanhq API Documentation
+    class Orders < Base
+      class << self
+        # Retrieves the list of all orders for the current day.
+        #
+        # @return [Array<Hash>] The list of orders as parsed JSON objects.
+        # @raise [Dhanhq::Error] If the API returns an error.
+        #
+        # @example Retrieve all orders for the day:
+        #   orders = Orders.list
+        def list
+          get("/orders")
+        end
+
+        # Retrieves the status of an order by its order ID.
+        #
+        # @param order_id [String] The ID of the order to retrieve.
+        # @return [Hash] The order details as a parsed JSON object.
+        # @raise [Dhanhq::Error] If the API returns an error.
+        #
+        # @example Retrieve order details by order ID:
+        #   order = Orders.find("order123")
+        def find(order_id)
+          get("/orders/#{order_id}")
+        end
+
+        # Retrieves the status of an order by its correlation ID.
+        #
+        # @param correlation_id [String] The correlation ID of the order to retrieve.
+        # @return [Hash] The order details as a parsed JSON object.
+        # @raise [Dhanhq::Error] If the API returns an error.
+        #
+        # @example Retrieve order details by correlation ID:
+        #   order = Orders.find_by_correlation("corr123")
+        def find_by_correlation(correlation_id)
+          get("/orders/external/#{correlation_id}")
+        end
+
+        # Retrieves the list of all trades for the current day.
+        #
+        # @return [Array<Hash>] The list of trades as parsed JSON objects.
+        # @raise [Dhanhq::Error] If the API returns an error.
+        #
+        # @example Retrieve all trades for the day:
+        #   trades = Orders.trades
+        def trades
+          get("/trades")
+        end
+
+        # Retrieves the details of trades for a specific order by its ID.
+        #
+        # @param order_id [String] The ID of the order for which to retrieve trades.
+        # @return [Array<Hash>] The list of trades as parsed JSON objects.
+        # @raise [Dhanhq::Error] If the API returns an error.
+        #
+        # @example Retrieve trades for a specific order:
+        #   trades = Orders.trades_by_order("order123")
+        def trades_by_order(order_id)
+          get("/trades/#{order_id}")
+        end
+
+        # Places a new order.
+        #
+        # @param order_params [Hash] The parameters for placing the order.
+        #   Required keys are validated using `PlaceOrderContract`.
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If validation fails or the API returns an error.
+        #
+        # @example Place a new order:
+        #   new_order = Orders.place({
+        #     dhanClientId: "123456",
+        #     transactionType: "BUY",
+        #     exchangeSegment: "NSE_EQ",
+        #     productType: "CNC",
+        #     orderType: "LIMIT",
+        #     securityId: "1001",
+        #     quantity: 10,
+        #     price: 150.0
+        #   })
+        def place(order_params)
+          validated_params = validate_with(Dhanhq::Contracts::PlaceOrderContract, order_params)
+          post("/orders", validated_params)
+        end
+
+        # Places an entry order.
+        #
+        # @param params [Hash] The order parameters (e.g., transactionType, exchangeSegment, etc.).
+        # @return [Hash] The API response with order details.
+        def entry(params)
+          place(params)
+        end
+
+        # Places a stop-loss order.
+        #
+        # @param params [Hash] The order parameters for stop-loss (must include triggerPrice).
+        # @return [Hash] The API response with order details.
+        def stop_loss(params)
+          params[:orderType] = "STOP_LOSS" unless params[:orderType]
+          place(params)
+        end
+
+        # Places an exit position order.
+        #
+        # @param params [Hash] The order parameters to exit a position (e.g., transactionType: "SELL").
+        # @return [Hash] The API response with order details.
+        def exit(params)
+          place(params)
+        end
+
+        # Slices a large order into smaller orders for better execution.
+        #
+        # @param params [Hash] The order parameters.
+        # @param slice_size [Integer] The size of each slice (default: 100).
+        # @return [Array<Hash>] An array of API responses for each slice.
+        def slicing(params, slice_size: 100)
+          total_quantity = params[:quantity].to_i
+          raise ArgumentError, "Quantity must be greater than zero." if total_quantity <= 0
+
+          responses = []
+          while total_quantity.positive?
+            slice_quantity = [slice_size, total_quantity].min
+            params[:quantity] = slice_quantity
+            responses << slicing_order(params)
+            total_quantity -= slice_quantity
+          end
+
+          responses
+        end
+
+        # Modifies a pending order.
+        #
+        # @param order_id [String] The ID of the order to modify.
+        # @param modify_params [Hash] The parameters for modifying the order.
+        #   Required keys are validated using `ModifyOrderContract`.
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If validation fails or the API returns an error.
+        #
+        # @example Modify a pending order:
+        #   modified_order = Orders.modify("order123", { price: 145.0, quantity: 5 })
+        def modify(order_id, modify_params)
+          validated_params = validate_with(Dhanhq::Contracts::ModifyOrderContract, modify_params)
+          put("/orders/#{order_id}", validated_params)
+        end
+
+        # Cancels a pending order.
+        #
+        # @param order_id [String] The ID of the order to cancel.
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If the API returns an error.
+        #
+        # @example Cancel a pending order:
+        #   canceled_order = Orders.cancel("order123")
+        def cancel(order_id)
+          delete("/orders/#{order_id}")
+        end
+
+        # Places a sliced order.
+        #
+        # @param order_params [Hash] The parameters for placing the sliced order.
+        #   Required keys are validated using `SliceOrderContract`.
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If validation fails or the API returns an error.
+        #
+        # @example Place a sliced order:
+        #   sliced_order = Orders.slicing_order({
+        #     dhanClientId: "123456",
+        #     transactionType: "SELL",
+        #     exchangeSegment: "NSE_EQ",
+        #     productType: "CNC",
+        #     securityId: "1001",
+        #     quantity: 100,
+        #     price: 150.0
+        #   })
+        def slicing_order(order_params)
+          validated_params = validate_with(Dhanhq::Contracts::SliceOrderContract, order_params)
+          post("/orders/slicing", validated_params)
+        end
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/api/portfolio.rb
+# frozen_string_literal: true
+
+require_relative "../contracts/convert_position_contract"
+module Dhanhq
+  module API
+    # Provides methods to manage portfolio data via Dhanhq's API.
+    #
+    # The `Portfolio` class extends `Dhanhq::API::Base` and includes methods to:
+    # - Retrieve holdings and positions.
+    # - Convert positions between intraday and delivery modes.
+    #
+    # Example usage:
+    #   # Retrieve all holdings
+    #   holdings = Portfolio.holdings
+    #
+    #   # Retrieve all open positions
+    #   positions = Portfolio.positions
+    #
+    #   # Convert a position
+    #   conversion = Portfolio.convert({
+    #     dhanClientId: "123456",
+    #     fromProductType: "INTRADAY",
+    #     toProductType: "CNC",
+    #     positionType: "LONG",
+    #     securityId: "1001",
+    #     convertQty: 10,
+    #     exchangeSegment: "NSE_EQ"
+    #   })
+    #
+    # @see Dhanhq::API::Base For shared API methods.
+    # @see Dhanhq::Contracts::ConvertPositionContract For Convert Position validation.
+    # @see https://dhanhq.co/docs/v2/portfolio/ Dhanhq API Documentation
+    class Portfolio < Base
+      class << self
+        # Retrieves all holdings for the client.
+        #
+        # @return [Array<Hash>] The list of holdings as parsed JSON objects.
+        # @raise [Dhanhq::Error] If the API returns an error.
+        #
+        # @example Retrieve all holdings:
+        #   holdings = Portfolio.holdings
+        def holdings
+          get("/holdings")
+        end
+
+        # Retrieves all open positions for the client.
+        #
+        # @return [Array<Hash>] The list of open positions as parsed JSON objects.
+        # @raise [Dhanhq::Error] If the API returns an error.
+        #
+        # @example Retrieve all open positions:
+        #   positions = Portfolio.positions
+        def positions
+          get("/positions")
+        end
+
+        # Converts a position between intraday and delivery (or vice versa).
+        #
+        # @param params [Hash] The request parameters for position conversion.
+        #   Required keys:
+        #   - `dhanClientId` [String] Unique client identifier.
+        #   - `fromProductType` [String] The current product type of the position (e.g., "INTRADAY").
+        #   - `toProductType` [String] The target product type after conversion (e.g., "CNC").
+        #   - `positionType` [String] The type of position (e.g., "LONG", "SHORT").
+        #   - `securityId` [String] Unique identifier for the security.
+        #   - `convertQty` [Integer] The quantity to convert.
+        #   - `exchangeSegment` [String] The exchange segment of the position (e.g., "NSE_EQ").
+        #
+        # @return [Hash] The API response as a parsed JSON object.
+        # @raise [Dhanhq::Error] If validation fails or the API returns an error.
+        #
+        # @example Convert a position:
+        #   conversion = Portfolio.convert({
+        #     dhanClientId: "123456",
+        #     fromProductType: "INTRADAY",
+        #     toProductType: "CNC",
+        #     positionType: "LONG",
+        #     securityId: "1001",
+        #     convertQty: 10,
+        #     exchangeSegment: "NSE_EQ"
+        #   })
+        def convert(params)
+          validated_params = validate_with(Dhanhq::Contracts::ConvertPositionContract, params)
+          post("/positions/convert", validated_params)
+        end
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/api/statements.rb
+# frozen_string_literal: true
+
+module Dhanhq
+  module API
+    # Provides methods to retrieve account statements and trade history via Dhanhq's API.
+    #
+    # The `Statements` class extends `Dhanhq::API::Base` and includes methods to:
+    # - Retrieve the trading account ledger for a specified date range.
+    # - Retrieve historical trade data with pagination support.
+    #
+    # Example usage:
+    #   # Fetch account ledger
+    #   ledger = Statements.ledger(from_date: "2023-01-01", to_date: "2023-12-31")
+    #
+    #   # Fetch trade history
+    #   trade_history = Statements.trade_history(from_date: "2023-01-01", to_date: "2023-12-31", page: 1)
+    #
+    # @see Dhanhq::API::Base For shared API methods.
+    # @see https://dhanhq.co/docs/v2/statements/ Dhanhq API Documentation
+    class Statements < Base
+      class << self
+        # Retrieves the trading account ledger for a specified date range.
+        #
+        # @param from_date [String] The start date for the ledger in `YYYY-MM-DD` format.
+        # @param to_date [String] The end date for the ledger in `YYYY-MM-DD` format.
+        # @return [Array<Hash>] The ledger entries as parsed JSON objects.
+        # @raise [Dhanhq::Error] If the API returns an error.
+        #
+        # @example Fetch account ledger:
+        #   ledger = Statements.ledger(from_date: "2023-01-01", to_date: "2023-12-31")
+        def ledger(from_date:, to_date:)
+          get("/ledger", { from_date: from_date, to_date: to_date })
+        end
+
+        # Retrieves historical trade data for a specified date range, with optional pagination.
+        #
+        # @param from_date [String] The start date for the trade history in `YYYY-MM-DD` format.
+        # @param to_date [String] The end date for the trade history in `YYYY-MM-DD` format.
+        # @param page [Integer] (Optional) The page number for pagination. Default is `0`.
+        # @return [Array<Hash>] The trade history as parsed JSON objects.
+        # @raise [Dhanhq::Error] If the API returns an error.
+        #
+        # @example Fetch trade history:
+        #   trade_history = Statements.trade_history(from_date: "2023-01-01", to_date: "2023-12-31", page: 1)
+        def trade_history(from_date:, to_date:, page: 0)
+          get("/trades", { from_date: from_date, to_date: to_date, page: page })
+        end
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/client.rb
+# frozen_string_literal: true
+
+require "faraday"
+require "json"
+require "active_support/core_ext/hash/indifferent_access" # For HashWithIndifferentAccess
+
+module Dhanhq
+  # The `Client` class provides a wrapper around HTTP requests to interact with the Dhanhq API.
+  #
+  # It uses the Faraday library for HTTP requests, handles JSON encoding/decoding, and integrates
+  # with Dhanhq's API authentication via `client_id` and `access_token`.
+  #
+  # Example usage:
+  #   client = Dhanhq::Client.new
+  #   response = client.get("/orders", { page: 1 })
+  #
+  #   # For POST:
+  #   response = client.post("/orders", { securityId: "1001", quantity: 10 })
+  #
+  # @see https://dhanhq.co/docs/v2/ Dhanhq API Documentation
+  class Client
+    # Base URL for the Dhanhq API.
+    BASE_URL = "https://api.dhan.co/v2"
+
+    # The Faraday connection object.
+    #
+    # @return [Faraday::Connection] The connection instance used for API requests.
+    attr_reader :connection
+
+    # Initializes a new Dhanhq Client instance.
+    #
+    # @example Create a new client:
+    #   client = Dhanhq::Client.new
+    #
+    # @return [Dhanhq::Client] A new client instance configured for API requests.
+    def initialize
+      @connection = Faraday.new(url: BASE_URL) do |conn|
+        conn.request :json # Automatically encode request bodies as JSON
+        conn.response :json, content_type: /\bjson$/ # Automatically parse JSON responses
+        conn.response :logger if ENV["DHAN_DEBUG"] # Enable logging if the environment variable is set
+        conn.adapter Faraday.default_adapter # Use Faraday's default HTTP adapter
+      end
+    end
+
+    # Sends a GET request to the API.
+    #
+    # @param path [String] The API endpoint path.
+    # @param params [Hash] The query parameters for the GET request.
+    # @return [Hash, Array] The parsed JSON response.
+    # @raise [Dhanhq::Error] If the response indicates an error.
+    def get(path, params = {})
+      request(:get, path, params)
+    end
+
+    # Sends a POST request to the API.
+    #
+    # @param path [String] The API endpoint path.
+    # @param body [Hash] The body of the POST request.
+    # @return [Hash, Array] The parsed JSON response.
+    # @raise [Dhanhq::Error] If the response indicates an error.
+    def post(path, body = {})
+      request(:post, path, body)
+    end
+
+    # Sends a PUT request to the API.
+    #
+    # @param path [String] The API endpoint path.
+    # @param body [Hash] The body of the PUT request.
+    # @return [Hash, Array] The parsed JSON response.
+    # @raise [Dhanhq::Error] If the response indicates an error.
+    def put(path, body = {})
+      request(:put, path, body)
+    end
+
+    # Sends a DELETE request to the API.
+    #
+    # @param path [String] The API endpoint path.
+    # @param params [Hash] The query parameters for the DELETE request.
+    # @return [Hash, Array] The parsed JSON response.
+    # @raise [Dhanhq::Error] If the response indicates an error.
+    def delete(path, params = {})
+      request(:delete, path, params)
+    end
+
+    private
+
+    # Handles HTTP requests to the Dhanhq API.
+    #
+    # @param method [Symbol] The HTTP method (e.g., :get, :post, :put, :delete).
+    # @param path [String] The API endpoint path.
+    # @param payload [Hash] The parameters or body for the request.
+    # @return [Hash, Array] The parsed JSON response.
+    # @raise [Dhanhq::Error] If the response indicates an error.
+    def request(method, path, payload)
+      response = connection.send(method) do |req|
+        req.url path
+        headers(req)
+        prepare_payload(req, payload, method)
+      end
+      handle_response(response)
+    end
+
+    def headers(req)
+      req.headers["access-token"] = Dhanhq.configuration.access_token
+      req.headers["client-id"] = Dhanhq.configuration.client_id
+      req.headers["Accept"] = "application/json"
+      req.headers["Content-Type"] = "application/json"
+    end
+
+    def prepare_payload(req, payload, method)
+      if method == :get
+        req.params = payload if payload.is_a?(Hash)
+      elsif payload.is_a?(Hash)
+        payload[:dhanClientId] = Dhanhq.configuration.client_id
+        req.body = payload.to_json
+      end
+    end
+
+    # Handles API responses and raises appropriate errors for unsuccessful requests.
+    #
+    # @param response [Faraday::Response] The response object from the API.
+    # @return [Hash, Array] The parsed JSON response for successful requests.
+    # @raise [Dhanhq::Error] If the response status indicates an error.
+    def handle_response(response)
+      case response.status
+      when 200..299
+        symbolize_keys(response.body)
+      else
+        handle_error(response)
+      end
+    end
+
+    def handle_error(response)
+      error_message = "#{response.status}: #{response.body}"
+      case response.status
+      when 400 then raise Dhanhq::Error, "Bad Request: #{error_message}"
+      when 401 then raise Dhanhq::Error, "Unauthorized: #{error_message}"
+      when 403 then raise Dhanhq::Error, "Forbidden: #{error_message}"
+      when 404 then raise Dhanhq::Error, "Not Found: #{error_message}"
+      when 500..599 then raise Dhanhq::Error, "Server Error: #{error_message}"
+      else raise Dhanhq::Error, "Unknown Error: #{error_message}"
+      end
+    end
+
+    # Converts response body to a hash with indifferent access (string and symbol keys).
+    def symbolize_keys(body)
+      body.is_a?(Hash) ? body.with_indifferent_access : body
+    end
+  end
+end
+
+
+# File: lib/dhanhq/configuration.rb
+# frozen_string_literal: true
+
+module Dhanhq
+  # Manages the configuration for the Dhanhq API client.
+  #
+  # The `Configuration` class allows developers to set and manage credentials required to interact
+  # with the Dhanhq API. It includes the `client_id` and `access_token` attributes, which are
+  # necessary for authenticating API requests.
+  #
+  # Example usage:
+  #   config = Dhanhq::Configuration.new
+  #   config.client_id = "your_client_id"
+  #   config.access_token = "your_access_token"
+  #
+  # @see https://dhanhq.co/docs/v2/ Dhanhq API Documentation
+  class Configuration
+    include Dhanhq::Constants
+    # The client ID for the Dhanhq API.
+    #
+    # @return [String, nil] The client ID or `nil` if not set.
+    attr_accessor :client_id
+
+    # The access token for the Dhanhq API.
+    #
+    # @return [String, nil] The access token or `nil` if not set.
+    attr_accessor :access_token
+
+    attr_accessor :compact_csv_url, :detailed_csv_url
+
+    # Initializes a new configuration instance with `nil` values for `client_id` and `access_token`.
+    #
+    # @example Initialize configuration:
+    #   config = Dhanhq::Configuration.new
+    #   config.client_id = "your_client_id"
+    #   config.access_token = "your_access_token"
+    def initialize
+      @client_id = nil
+      @access_token = nil
+      @compact_csv_url = COMPACT_CSV_URL
+      @detailed_csv_url = DETAILED_CSV_URL
+    end
+  end
+end
+
+
+# File: lib/dhanhq/constants.rb
+# frozen_string_literal: true
+
+module Dhanhq
+  module Constants
+    TRANSACTION_TYPES = %w[BUY SELL].freeze
+
+    EXCHANGE_SEGMENTS = %w[
+      NSE_EQ
+      NSE_FNO
+      NSE_CURRENCY
+      BSE_EQ
+      BSE_FNO
+      BSE_CURRENCY
+      MCX_COMM
+    ].freeze
+
+    PRODUCT_TYPES = %w[
+      CNC
+      INTRADAY
+      MARGIN
+      MTF
+      CO
+      BO
+    ].freeze
+
+    ORDER_TYPES = %w[
+      LIMIT
+      MARKET
+      STOP_LOSS
+      STOP_LOSS_MARKET
+    ].freeze
+
+    VALIDITY_TYPES = %w[DAY IOC].freeze
+
+    AMO_TIMINGS = %w[
+      OPEN
+      OPEN_30
+      OPEN_60
+      PRE_OPEN
+    ].freeze
+
+    ORDER_STATUSES = %w[
+      TRANSIT
+      PENDING
+      REJECTED
+      CANCELLED
+      PART_TRADED
+      TRADED
+      EXPIRED
+      MODIFIED
+      TRIGGERED
+    ].freeze
+
+    # Constants for Exchange Segment
+    NSE = "NSE_EQ"
+    BSE = "BSE_EQ"
+    CUR = "NSE_CURRENCY"
+    MCX = "MCX_COMM"
+    FNO = "NSE_FNO"
+    NSE_FNO = "NSE_FNO"
+    BSE_FNO = "BSE_FNO"
+    INDEX = "IDX_I"
+
+    OPTION_SEGMENTS = [NSE, BSE, CUR, MCX, FNO, NSE_FNO, BSE_FNO, INDEX].freeze
+
+    # Constants for Transaction Type
+    BUY = "BUY"
+    SELL = "SELL"
+
+    # Constants for Product Type
+    CNC = "CNC"
+    INTRA = "INTRADAY"
+    MARGIN = "MARGIN"
+    CO = "CO"
+    BO = "BO"
+    MTF = "MTF"
+
+    # Constants for Order Type
+    LIMIT = "LIMIT"
+    MARKET = "MARKET"
+    SL = "STOP_LOSS"
+    SLM = "STOP_LOSS_MARKET"
+
+    # Constants for Validity
+    DAY = "DAY"
+    IOC = "IOC"
+
+    # CSV URLs for Security ID List
+    COMPACT_CSV_URL = "https://images.dhan.co/api-data/api-scrip-master.csv"
+    DETAILED_CSV_URL = "https://images.dhan.co/api-data/api-scrip-master-detailed.csv"
+  end
+end
+
+
+# File: lib/dhanhq/contracts/base_contract.rb
+# frozen_string_literal: true
+
+require "dry-validation"
+require_relative "../constants"
+
+module Dhanhq
+  module Contracts
+    # Base contract that includes shared logic and constants.
+    class BaseContract < Dry::Validation::Contract
+      # Include constants to make them accessible in all derived contracts
+      include Dhanhq::Constants
+    end
+  end
+end
+
+
+# File: lib/dhanhq/contracts/convert_position_contract.rb
+# frozen_string_literal: true
+
+module Dhanhq
+  module Contracts
+    # Validation contract for converting a position via Dhanhq's API.
+    #
+    # This contract validates the parameters required to convert a position from one product type
+    # to another. It ensures consistency in input values, including exchange segment, product types,
+    # and position type.
+    #
+    # Example usage:
+    #   contract = Dhanhq::Contracts::ConvertPositionContract.new
+    #   result = contract.call(
+    #     dhanClientId: "123456",
+    #     fromProductType: "INTRADAY",
+    #     exchangeSegment: "NSE_EQ",
+    #     positionType: "LONG",
+    #     securityId: "1001",
+    #     tradingSymbol: "RELIANCE",
+    #     convertQty: 10,
+    #     toProductType: "CNC"
+    #   )
+    #   result.success? # => true or false
+    #
+    # @see https://dhanhq.co/docs/v2/ Dhanhq API Documentation
+    class ConvertPositionContract < BaseContract
+      # Parameters and validation rules for the Convert Position request.
+      #
+      # @!attribute [r] dhanClientId
+      #   @return [String] Required. Unique client identifier from Dhanhq.
+      # @!attribute [r] fromProductType
+      #   @return [String] Required. The current product type of the position.
+      #     Must be one of: `PRODUCT_TYPES`.
+      # @!attribute [r] exchangeSegment
+      #   @return [String] Required. The exchange segment of the position.
+      #     Must be one of: `EXCHANGE_SEGMENTS`.
+      # @!attribute [r] positionType
+      #   @return [String] Required. The type of position.
+      #     Must be one of: LONG, SHORT, CLOSED.
+      # @!attribute [r] securityId
+      #   @return [String] Required. Unique identifier for the security.
+      # @!attribute [r] tradingSymbol
+      #   @return [String] Optional. The trading symbol of the instrument.
+      # @!attribute [r] convertQty
+      #   @return [Integer] Required. The quantity of the position to convert, must be greater than 0.
+      # @!attribute [r] toProductType
+      #   @return [String] Required. The target product type after conversion.
+      #     Must be one of: `PRODUCT_TYPES`.
+      #
+      #   @example Valid input:
+      #     {
+      #       fromProductType: "INTRADAY",
+      #       exchangeSegment: "NSE_EQ",
+      #       positionType: "LONG",
+      #       securityId: "1001",
+      #       convertQty: 10,
+      #       toProductType: "CNC"
+      #     }
+      #   @example Invalid conversion:
+      #     {
+      #       fromProductType: "CNC",
+      #       toProductType: "CNC"
+      #     }
+      #     => Adds failure message "fromProductType cannot be the same as toProductType".
+      params do
+        required(:fromProductType).filled(:string, included_in?: PRODUCT_TYPES)
+        required(:exchangeSegment).filled(:string, included_in?: EXCHANGE_SEGMENTS)
+        required(:positionType).filled(:string, included_in?: %w[LONG SHORT CLOSED])
+        required(:securityId).filled(:string)
+        optional(:tradingSymbol).maybe(:string)
+        required(:convertQty).filled(:integer, gt?: 0)
+        required(:toProductType).filled(:string, included_in?: PRODUCT_TYPES)
+      end
+
+      # Custom rule to ensure `fromProductType` and `toProductType` are not the same.
+      #
+      # @example Invalid conversion:
+      #   fromProductType: "CNC", toProductType: "CNC"
+      #   => Adds failure message "fromProductType cannot be the same as toProductType".
+      #
+      # @param fromProductType [String] The current product type of the position.
+      # @param toProductType [String] The target product type of the position.
+      rule(:fromProductType, :toProductType) do
+        if values[:fromProductType] == values[:toProductType]
+          key(:fromProductType).failure("cannot be the same as toProductType")
+        end
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/contracts/expiry_list_contract.rb
+# frozen_string_literal: true
+
+module Dhanhq
+  module Contracts
+    # Validation contract for fetching Expiry List data via Dhanhq's API.
+    #
+    # Example usage:
+    #   contract = Dhanhq::Contracts::ExpiryListContract.new
+    #   result = contract.call(
+    #     UnderlyingScrip: 13,
+    #     UnderlyingSeg: "IDX_I"
+    #   )
+    #   result.success? # => true or false
+    #
+    class ExpiryListContract < BaseContract
+      SEGMENTS = %w[IDX_I NSE_EQ NSE_FNO BSE_EQ BSE_FNO MCX_COMM].freeze
+
+      # Validation rules for Expiry List API parameters.
+      params do
+        required(:UnderlyingScrip).value(:integer)
+        required(:UnderlyingSeg).value(included_in?: SEGMENTS)
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/contracts/historical_ohlc_contract.rb
+# frozen_string_literal: true
+
+module Dhanhq
+  module Contracts
+    # Validation contract for fetching Historical OHLC data via Dhanhq's API.
+    #
+    # This contract validates input parameters for retrieving historical OHLC (Open-High-Low-Close) data,
+    # including required fields like security ID, exchange segment, and date range.
+    # It also includes optional fields like expiry code.
+    #
+    # Example usage:
+    #   contract = Dhanhq::Contracts::HistoricalOHLCContract.new
+    #   result = contract.call(
+    #     securityId: "1001",
+    #     exchangeSegment: "NSE_EQ",
+    #     instrument: "EQUITY",
+    #     fromDate: "2023-01-01",
+    #     toDate: "2023-12-31",
+    #     expiryCode: 123456
+    #   )
+    #   result.success? # => true or false
+    #
+    # @see https://dhanhq.co/docs/v2/ Dhanhq API Documentation
+    class HistoricalOHLCContract < BaseContract
+      # Parameters and validation rules for the Historical OHLC request.
+      #
+      # @!attribute [r] securityId
+      #   @return [String] Required. Unique identifier for the security.
+      # @!attribute [r] exchangeSegment
+      #   @return [String] Required. The segment of the exchange.
+      #     Must be one of: `EXCHANGE_SEGMENTS`.
+      # @!attribute [r] instrument
+      #   @return [String] Required. The type of instrument for OHLC data.
+      #     Must be one of: INDEX, FUTIDX, OPTIDX, EQUITY, FUTSTK, OPTSTK, FUTCOM, OPTFUT, FUTCUR, OPTCUR.
+      # @!attribute [r] expiryCode
+      #   @return [Integer] Optional. Expiry code for derivative instruments.
+      # @!attribute [r] fromDate
+      #   @return [String] Required. The start date for the OHLC data in `YYYY-MM-DD` format.
+      # @!attribute [r] toDate
+      #   @return [String] Required. The end date for the OHLC data in `YYYY-MM-DD` format.
+      #
+      #   @example Valid input:
+      #     {
+      #       securityId: "1001",
+      #       exchangeSegment: "NSE_EQ",
+      #       instrument: "EQUITY",
+      #       fromDate: "2023-01-01",
+      #       toDate: "2023-12-31",
+      #       expiryCode: 123456
+      #     }
+      #   @example Invalid date range:
+      #     {
+      #       fromDate: "2023-12-31",
+      #       toDate: "2023-01-01"
+      #     }
+      #     => Adds failure message "fromDate must be earlier than or equal to toDate".
+      params do
+        required(:securityId).filled(:string)
+        required(:exchangeSegment).filled(:string, included_in?: EXCHANGE_SEGMENTS)
+        required(:instrument).filled(:string,
+                                     included_in?: %w[INDEX FUTIDX OPTIDX EQUITY FUTSTK OPTSTK FUTCOM OPTFUT FUTCUR
+                                                      OPTCUR])
+        optional(:expiryCode).maybe(:integer)
+        required(:fromDate).filled(:string, format?: /\A\d{4}-\d{2}-\d{2}\z/) # YYYY-MM-DD
+        required(:toDate).filled(:string, format?: /\A\d{4}-\d{2}-\d{2}\z/) # YYYY-MM-DD
+      end
+
+      # Custom validation to ensure that `fromDate` is earlier than or equal to `toDate`.
+      #
+      # @example Invalid date range:
+      #   fromDate: "2023-12-31", toDate: "2023-01-01"
+      #   => Adds failure message "fromDate must be earlier than or equal to toDate".
+      #
+      # @param fromDate [String] The start date for the OHLC data.
+      # @param toDate [String] The end date for the OHLC data.
+      rule(:fromDate, :toDate) do
+        if Date.parse(values[:fromDate]) > Date.parse(values[:toDate])
+          key(:fromDate).failure("must be earlier than or equal to toDate")
+        end
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/contracts/intraday_ohlc_contract.rb
+# frozen_string_literal: true
+
+module Dhanhq
+  module Contracts
+    # Validation contract for fetching Intraday OHLC data via Dhanhq's API.
+    #
+    # This contract ensures the correctness of parameters for intraday OHLC requests.
+    # It validates the instrument type, time interval, date range, and other required fields.
+    #
+    # Example usage:
+    #   contract = Dhanhq::Contracts::IntradayOHLCContract.new
+    #   result = contract.call(
+    #     securityId: "1001",
+    #     exchangeSegment: "NSE_EQ",
+    #     instrument: "EQUITY",
+    #     interval: "15",
+    #     fromDate: "2024-01-01",
+    #     toDate: "2024-01-31"
+    #   )
+    #   result.success? # => true or false
+    #
+    # @see https://dhanhq.co/docs/v2/ Dhanhq API Documentation
+    class IntradayOHLCContract < BaseContract
+      # Parameters and validation rules for the Intraday OHLC request.
+      #
+      # @!attribute [r] securityId
+      #   @return [String] Required. Unique identifier for the security.
+      # @!attribute [r] exchangeSegment
+      #   @return [String] Required. The segment of the exchange.
+      #     Must be one of: `EXCHANGE_SEGMENTS`.
+      # @!attribute [r] instrument
+      #   @return [String] Required. The type of instrument for OHLC data.
+      #     Must be one of: INDEX, FUTIDX, OPTIDX, EQUITY, FUTSTK, OPTSTK, FUTCOM, OPTFUT, FUTCUR, OPTCUR.
+      # @!attribute [r] interval
+      #   @return [String] Required. The time interval for OHLC data in minutes.
+      #     Must be one of: 1, 5, 15, 25, 60.
+      # @!attribute [r] fromDate
+      #   @return [String] Required. The start date for the OHLC data in `YYYY-MM-DD` format.
+      # @!attribute [r] toDate
+      #   @return [String] Required. The end date for the OHLC data in `YYYY-MM-DD` format.
+      #
+      #   @example Valid input:
+      #     {
+      #       securityId: "1001",
+      #       exchangeSegment: "NSE_EQ",
+      #       instrument: "EQUITY",
+      #       interval: "15",
+      #       fromDate: "2024-01-01",
+      #       toDate: "2024-01-31"
+      #     }
+      #   @example Invalid date range:
+      #     {
+      #       fromDate: "2024-01-31",
+      #       toDate: "2024-01-01"
+      #     }
+      #     => Adds failure message "fromDate must be earlier than or equal to toDate".
+      params do
+        required(:securityId).filled(:string)
+        required(:exchangeSegment).filled(:string, included_in?: EXCHANGE_SEGMENTS)
+        required(:instrument).filled(:string,
+                                     included_in?: %w[INDEX FUTIDX OPTIDX EQUITY FUTSTK OPTSTK FUTCOM OPTFUT FUTCUR
+                                                      OPTCUR])
+        required(:interval).filled(:string, included_in?: %w[1 5 15 25 60])
+        required(:fromDate).filled(:string, format?: /\A\d{4}-\d{2}-\d{2}\z/) # YYYY-MM-DD
+        required(:toDate).filled(:string, format?: /\A\d{4}-\d{2}-\d{2}\z/) # YYYY-MM-DD
+      end
+
+      # Custom validation to ensure that `fromDate` is earlier than or equal to `toDate`.
+      #
+      # @example Invalid date range:
+      #   fromDate: "2024-01-31", toDate: "2024-01-01"
+      #   => Adds failure message "must be earlier than or equal to toDate".
+      #
+      # @param fromDate [String] The start date for the OHLC data.
+      # @param toDate [String] The end date for the OHLC data.
+      rule(:fromDate, :toDate) do
+        if Date.parse(values[:fromDate]) > Date.parse(values[:toDate])
+          key(:fromDate).failure("must be earlier than or equal to toDate")
+        end
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/contracts/margin_calculator_contract.rb
+# frozen_string_literal: true
+
+module Dhanhq
+  module Contracts
+    # Validation contract for calculating margin requirements via Dhanhq's API.
+    #
+    # This contract ensures the correct structure and values for margin calculation requests,
+    # including conditional rules based on the type of product.
+    #
+    # Example usage:
+    #   contract = Dhanhq::Contracts::MarginCalculatorContract.new
+    #   result = contract.call(
+    #     dhanClientId: "123456",
+    #     exchangeSegment: "NSE_FNO",
+    #     transactionType: "BUY",
+    #     quantity: 10,
+    #     productType: "CNC",
+    #     securityId: "1001",
+    #     price: 150.0,
+    #     triggerPrice: nil
+    #   )
+    #   result.success? # => true or false
+    #
+    # @see https://dhanhq.co/docs/v2/ Dhanhq API Documentation
+    class MarginCalculatorContract < BaseContract
+      # Parameters and validation rules for the Margin Calculator request.
+      #
+      # @!attribute [r] dhanClientId
+      #   @return [String] Required. Unique client identifier from Dhanhq.
+      # @!attribute [r] exchangeSegment
+      #   @return [String] Required. The exchange segment where the trade is placed.
+      #     Must be one of:
+      #     - NSE_EQ
+      #     - NSE_FNO
+      #     - NSE_CURRENCY
+      #     - BSE_EQ
+      #     - BSE_FNO
+      #     - BSE_CURRENCY
+      #     - MCX_COMM.
+      # @!attribute [r] transactionType
+      #   @return [String] Required. The type of transaction.
+      #     Must be one of: BUY, SELL.
+      # @!attribute [r] quantity
+      #   @return [Integer] Required. Quantity of the trade, must be greater than 0.
+      # @!attribute [r] productType
+      #   @return [String] Required. Type of product.
+      #     Must be one of: CNC, INTRADAY, MARGIN, MTF, CO, BO.
+      # @!attribute [r] securityId
+      #   @return [String] Required. Security identifier for the trade.
+      # @!attribute [r] price
+      #   @return [Float] Required. The price of the trade, must be greater than 0.
+      # @!attribute [r] triggerPrice
+      #   @return [Float] Optional. Trigger price for the trade, must be greater than 0 if provided.
+      #
+      #   @example Valid input:
+      #     {
+      #       exchangeSegment: "NSE_FNO",
+      #       transactionType: "BUY",
+      #       quantity: 10,
+      #       productType: "CNC",
+      #       securityId: "1001",
+      #       price: 150.0,
+      #       triggerPrice: nil
+      #     }
+      params do
+        required(:exchangeSegment).filled(:string,
+                                          included_in?: %w[NSE_EQ NSE_FNO NSE_CURRENCY BSE_EQ BSE_FNO BSE_CURRENCY
+                                                           MCX_COMM])
+        required(:transactionType).filled(:string, included_in?: %w[BUY SELL])
+        required(:quantity).filled(:integer, gt?: 0)
+        required(:productType).filled(:string, included_in?: %w[CNC INTRADAY MARGIN MTF CO BO])
+        required(:securityId).filled(:string)
+        required(:price).filled(:float, gt?: 0)
+        optional(:triggerPrice).maybe(:float, gt?: 0)
+      end
+
+      # Custom rule for conditionally required triggerPrice.
+      #
+      # @example Invalid input for STOP_LOSS product type:
+      #   productType: "STOP_LOSS", triggerPrice: nil
+      #   => Adds failure message "is required for productType STOP_LOSS or STOP_LOSS_MARKET".
+      #
+      # @param triggerPrice [Float] Trigger price for STOP_LOSS products.
+      # @param productType [String] The type of product being traded.
+      rule(:triggerPrice, :productType) do
+        if values[:productType] =~ /^STOP_LOSS/ && !values[:triggerPrice]
+          key(:triggerPrice).failure("is required for productType STOP_LOSS or STOP_LOSS_MARKET")
+        end
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/contracts/market_quote_contract.rb
+# frozen_string_literal: true
+
+module Dhanhq
+  module Contracts
+    # Validation contract for fetching market quotes via Dhanhq's API.
+    #
+    # This contract validates input for the Market Quote API.
+    # It ensures that:
+    # - Data contains valid exchange segments as keys.
+    # - Each segment has a non-empty array of security IDs as values.
+    # - Security IDs in the arrays are integers.
+    #
+    # Example usage:
+    #   contract = Dhanhq::Contracts::MarketQuoteContract.new
+    #   result = contract.call(
+    #     data: {
+    #       "NSE_EQ" => [12345, 67890],
+    #       "BSE_EQ" => [11223]
+    #     }
+    #   )
+    #   result.success? # => true or false
+    class MarketQuoteContract < BaseContract
+      EXCHANGE_SEGMENTS = %w[NSE_EQ NSE_FNO BSE_EQ BSE_FNO MCX].freeze
+
+      # Parameters and validation rules for the Market Quote request.
+      params do
+        required(:data).value(:hash)
+      end
+
+      rule(:data) do
+        value.each do |key, security_ids|
+          # Validate that the key is a valid exchange segment
+          key.failure("#{key} is not a valid exchange segment.") unless EXCHANGE_SEGMENTS.include?(key)
+
+          # Validate that the security IDs are an array of integers
+          unless security_ids.is_a?(Array) && security_ids.all? { |id| id.is_a?(Integer) }
+            key.failure("Security IDs for #{key} must be an array of integers.")
+          end
+
+          # Ensure there is at least one security ID
+          key.failure("Security IDs for #{key} cannot be empty.") if security_ids.empty?
+        end
+
+        # Ensure at least one valid exchange segment is provided
+        key.failure("At least one exchange segment must be provided with security IDs.") if value.empty?
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/contracts/modify_forever_order_contract.rb
+# frozen_string_literal: true
+
+module Dhanhq
+  module Contracts
+    # Validation contract for modifying Forever Orders via Dhanhq's API.
+    #
+    # This contract validates input parameters required for modifying Forever Orders.
+    # It ensures correct values for single-leg (`SINGLE`) or one-cancels-the-other (`OCO`) orders
+    # and applies specific rules for OCO orders.
+    #
+    # Example usage:
+    #   contract = Dhanhq::Contracts::ModifyForeverOrderContract.new
+    #   result = contract.call(
+    #     dhanClientId: "123456",
+    #     orderId: "1001",
+    #     orderFlag: "OCO",
+    #     orderType: "LIMIT",
+    #     legName: "STOP_LOSS_LEG",
+    #     quantity: 10,
+    #     price: 150.0,
+    #     triggerPrice: 140.0,
+    #     validity: "DAY"
+    #   )
+    #   result.success? # => true or false
+    #
+    # @see https://dhanhq.co/docs/v2/ Dhanhq API Documentation
+    class ModifyForeverOrderContract < BaseContract
+      # Parameters and validation rules for modifying Forever Orders.
+      #
+      # @!attribute [r] orderId
+      #   @return [String] Required. Unique identifier for the order to be modified.
+      # @!attribute [r] orderFlag
+      #   @return [String] Required. Indicates the type of order:
+      #     - SINGLE: Single-leg order.
+      #     - OCO: One-cancels-the-other order.
+      # @!attribute [r] orderType
+      #   @return [String] Required. The type of order to modify.
+      #     Must be one of: LIMIT, MARKET, STOP_LOSS, STOP_LOSS_MARKET.
+      # @!attribute [r] legName
+      #   @return [String] Required. The leg of the order to modify.
+      #     Must be one of: TARGET_LEG, STOP_LOSS_LEG.
+      # @!attribute [r] quantity
+      #   @return [Integer] Required. Quantity to modify, must be greater than 0.
+      # @!attribute [r] price
+      #   @return [Float] Required. The price for the modification, must be greater than 0.
+      # @!attribute [r] disclosedQuantity
+      #   @return [Integer] Optional. The disclosed quantity, must be greater than or equal to 0.
+      # @!attribute [r] triggerPrice
+      #   @return [Float] Required. The trigger price for the modification, must be greater than 0.
+      # @!attribute [r] validity
+      #   @return [String] Required. Validity of the order.
+      #     Must be one of: DAY, IOC.
+      params do
+        required(:orderId).filled(:string)
+        required(:orderFlag).filled(:string, included_in?: %w[SINGLE OCO])
+        required(:orderType).filled(:string, included_in?: %w[LIMIT MARKET STOP_LOSS STOP_LOSS_MARKET])
+        required(:legName).filled(:string, included_in?: %w[TARGET_LEG STOP_LOSS_LEG])
+        required(:quantity).filled(:integer, gt?: 0)
+        required(:price).filled(:float, gt?: 0)
+        optional(:disclosedQuantity).maybe(:integer, gt?: 0)
+        required(:triggerPrice).filled(:float, gt?: 0)
+        required(:validity).filled(:string, included_in?: %w[DAY IOC])
+      end
+
+      # Custom validation for `OCO` orders to ensure correct legName is provided.
+      #
+      # @example Invalid OCO order:
+      #   orderFlag: "OCO", legName: "INVALID_LEG"
+      #   => Adds failure message "must be STOP_LOSS_LEG or TARGET_LEG for OCO orders".
+      #
+      # @param orderFlag [String] The type of the order.
+      # @param legName [String] The leg of the order to modify.
+      rule(:orderFlag, :legName) do
+        if values[:orderFlag] == "OCO" && !%w[STOP_LOSS_LEG TARGET_LEG].include?(values[:legName])
+          key(:legName).failure("must be STOP_LOSS_LEG or TARGET_LEG for OCO orders")
+        end
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/contracts/modify_order_contract.rb
+# frozen_string_literal: true
+
+module Dhanhq
+  module Contracts
+    # Validation contract for modifying an existing order via Dhanhq's API.
+    #
+    # This contract validates input parameters for the Modify Order API,
+    # ensuring that all required fields are provided and optional fields follow
+    # the correct constraints. It also applies custom validation rules based on
+    # the type of order.
+    #
+    # Example usage:
+    #   contract = Dhanhq::Contracts::ModifyOrderContract.new
+    #   result = contract.call(
+    #     dhanClientId: "123456",
+    #     orderId: "1001",
+    #     orderType: "STOP_LOSS",
+    #     legName: "ENTRY_LEG",
+    #     quantity: 10,
+    #     price: 150.0,
+    #     triggerPrice: 140.0,
+    #     validity: "DAY"
+    #   )
+    #   result.success? # => true or false
+    #
+    # @see https://dhanhq.co/docs/v2/ Dhanhq API Documentation
+    class ModifyOrderContract < BaseContract
+      # Parameters and validation rules for the Modify Order request.
+      #
+      # @!attribute [r] orderId
+      #   @return [String] Required. Unique identifier for the order to be modified.
+      # @!attribute [r] orderType
+      #   @return [String] Required. Type of the order.
+      #     Must be one of: LIMIT, MARKET, STOP_LOSS, STOP_LOSS_MARKET.
+      # @!attribute [r] legName
+      #   @return [String] Optional. Leg name for complex orders.
+      #     Must be one of: ENTRY_LEG, TARGET_LEG, STOP_LOSS_LEG, NA.
+      # @!attribute [r] quantity
+      #   @return [Integer] Required. Quantity to be modified, must be greater than 0.
+      # @!attribute [r] price
+      #   @return [Float] Optional. Price to be modified, must be greater than 0 if provided.
+      # @!attribute [r] disclosedQuantity
+      #   @return [Integer] Optional. Disclosed quantity, must be >= 0 if provided.
+      # @!attribute [r] triggerPrice
+      #   @return [Float] Optional. Trigger price for stop-loss orders, must be greater than 0 if provided.
+      # @!attribute [r] validity
+      #   @return [String] Required. Validity of the order.
+      #     Must be one of: DAY, IOC, GTC, GTD.
+      params do
+        required(:orderId).filled(:string)
+        required(:orderType).filled(:string, included_in?: %w[LIMIT MARKET STOP_LOSS STOP_LOSS_MARKET])
+        optional(:legName).maybe(:string, included_in?: %w[ENTRY_LEG TARGET_LEG STOP_LOSS_LEG NA])
+        required(:quantity).filled(:integer, gt?: 0)
+        optional(:price).maybe(:float, gt?: 0)
+        optional(:disclosedQuantity).maybe(:integer, gteq?: 0)
+        optional(:triggerPrice).maybe(:float, gt?: 0)
+        required(:validity).filled(:string, included_in?: %w[DAY IOC GTC GTD])
+      end
+
+      # Custom validation to ensure a trigger price is provided for stop-loss orders.
+      #
+      # @example Invalid stop-loss order:
+      #   orderType: "STOP_LOSS", triggerPrice: nil
+      #   => Adds failure message "is required for orderType STOP_LOSS or STOP_LOSS_MARKET".
+      #
+      # @param triggerPrice [Float] The price at which the order will be triggered.
+      # @param orderType [String] The type of the order.
+      rule(:triggerPrice, :orderType) do
+        if values[:orderType].start_with?("STOP_LOSS") && !values[:triggerPrice]
+          key(:triggerPrice).failure("is required for orderType STOP_LOSS or STOP_LOSS_MARKET")
+        end
+      end
+
+      # Custom validation to ensure a leg name is provided for CO or BO order types.
+      #
+      # @example Invalid CO order:
+      #   orderType: "CO", legName: nil
+      #   => Adds failure message "is required for orderType CO or BO".
+      #
+      # @param legName [String] The leg name of the order.
+      # @param orderType [String] The type of the order.
+      rule(:legName, :orderType) do
+        if %w[CO BO].include?(values[:orderType]) && !values[:legName]
+          key(:legName).failure("is required for orderType CO or BO")
+        end
+      end
+
+      # Custom validation to ensure the price is valid if provided.
+      #
+      # @example Invalid price:
+      #   price: 0
+      #   => Adds failure message "must be greater than 0 if provided".
+      #
+      # @param price [Float] The price of the order.
+      rule(:price) do
+        key(:price).failure("must be greater than 0 if provided") if values[:price].nil? || values[:price] <= 0
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/contracts/option_chain_contract.rb
+# frozen_string_literal: true
+
+module Dhanhq
+  module Contracts
+    # Validation contract for fetching Option Chain data via Dhanhq's API.
+    #
+    # Example usage:
+    #   contract = Dhanhq::Contracts::OptionChainContract.new
+    #   result = contract.call(
+    #     UnderlyingScrip: 13,
+    #     UnderlyingSeg: "IDX_I",
+    #     Expiry: "2024-10-31"
+    #   )
+    #   result.success? # => true or false
+    #
+    class OptionChainContract < BaseContract
+      SEGMENTS = %w[IDX_I NSE_EQ NSE_FNO BSE_EQ BSE_FNO MCX_COMM].freeze
+
+      # Validation rules for Option Chain API parameters.
+      params do
+        required(:UnderlyingScrip).value(:integer)
+        required(:UnderlyingSeg).value(included_in?: SEGMENTS)
+        required(:Expiry).value(:string, format?: /^\d{4}-\d{2}-\d{2}$/)
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/contracts/place_forever_order_contract.rb
+# frozen_string_literal: true
+
+module Dhanhq
+  module Contracts
+    # Validation contract for placing Forever Orders via Dhanhq's API.
+    #
+    # Forever Orders allow creating and managing persistent orders that remain
+    # active until explicitly canceled or executed. This contract validates:
+    # - Mandatory fields for both `SINGLE` and `OCO` orders.
+    # - Conditional validations for `OCO`-specific fields.
+    # - Consistency and range constraints for price-related fields.
+    #
+    # Example usage:
+    #   contract = Dhanhq::Contracts::PlaceForeverOrderContract.new
+    #   result = contract.call(
+    #     dhanClientId: "123456",
+    #     orderFlag: "OCO",
+    #     transactionType: "BUY",
+    #     exchangeSegment: "NSE_EQ",
+    #     productType: "CNC",
+    #     orderType: "LIMIT",
+    #     validity: "DAY",
+    #     securityId: "1001",
+    #     quantity: 10,
+    #     price: 150.0,
+    #     triggerPrice: 140.0,
+    #     price1: 130.0,
+    #     triggerPrice1: 120.0,
+    #     quantity1: 5
+    #   )
+    #   result.success? # => true or false
+    #
+    # @see https://dhanhq.co/docs/v2/ Dhanhq API Documentation
+    class PlaceForeverOrderContract < BaseContract
+      # Parameters and validation rules for the Forever Order request.
+      #
+      # @!attribute [r] correlationId
+      #   @return [String] Optional. Identifier for tracking, max length 25 characters.
+      # @!attribute [r] orderFlag
+      #   @return [String] Required. Indicates the order type:
+      #     - SINGLE: Single-leg order.
+      #     - OCO: One-cancels-the-other order.
+      # @!attribute [r] transactionType
+      #   @return [String] Required. BUY or SELL, validated using `TRANSACTION_TYPES`.
+      # @!attribute [r] exchangeSegment
+      #   @return [String] Required. Exchange segment for the order. Must be one of:
+      #     NSE_EQ, NSE_FNO, BSE_EQ, BSE_FNO.
+      # @!attribute [r] productType
+      #   @return [String] Required. Product type for the order. Must be one of:
+      #     CNC, MTF, MARGIN.
+      # @!attribute [r] orderType
+      #   @return [String] Required. Type of order. Must be one of:
+      #     LIMIT, MARKET.
+      # @!attribute [r] validity
+      #   @return [String] Required. Validity of the order. Must be one of:
+      #     DAY, IOC.
+      # @!attribute [r] securityId
+      #   @return [String] Required. Security identifier for the order.
+      # @!attribute [r] quantity
+      #   @return [Integer] Required. Quantity of the order, must be greater than 0.
+      # @!attribute [r] disclosedQuantity
+      #   @return [Integer] Optional. Disclosed quantity, must be > 0 if provided.
+      # @!attribute [r] price
+      #   @return [Float] Required. Price for the order, must be > 0.
+      # @!attribute [r] triggerPrice
+      #   @return [Float] Required. Trigger price for the order, must be > 0.
+      # @!attribute [r] price1
+      #   @return [Float] Optional. Price for the secondary leg in OCO orders.
+      #     Required when `orderFlag` is OCO, must be > 0.
+      # @!attribute [r] triggerPrice1
+      #   @return [Float] Optional. Trigger price for the secondary leg in OCO orders.
+      #     Required when `orderFlag` is OCO, must be > 0 and less than `price1`.
+      # @!attribute [r] quantity1
+      #   @return [Integer] Optional. Quantity for the secondary leg in OCO orders.
+      #     Required when `orderFlag` is OCO, must be > 0.
+      params do
+        optional(:correlationId).maybe(:string, max_size?: 25)
+        required(:orderFlag).filled(:string, included_in?: %w[SINGLE OCO])
+        required(:transactionType).filled(:string, included_in?: TRANSACTION_TYPES)
+        required(:exchangeSegment).filled(:string, included_in?: %w[NSE_EQ NSE_FNO BSE_EQ BSE_FNO])
+        required(:productType).filled(:string, included_in?: %w[CNC MTF MARGIN])
+        required(:orderType).filled(:string, included_in?: %w[LIMIT MARKET])
+        required(:validity).filled(:string, included_in?: %w[DAY IOC])
+        required(:securityId).filled(:string)
+        required(:quantity).filled(:integer, gt?: 0)
+        optional(:disclosedQuantity).maybe(:integer, gt?: 0)
+        required(:price).filled(:float, gt?: 0)
+        required(:triggerPrice).filled(:float, gt?: 0)
+        optional(:price1).maybe(:float, gt?: 0)
+        optional(:triggerPrice1).maybe(:float, gt?: 0)
+        optional(:quantity1).maybe(:integer, gt?: 0)
+      end
+
+      # Custom validation for OCO orders to ensure all secondary leg fields are present.
+      #
+      # @example Invalid OCO order:
+      #   orderFlag: "OCO", price1: 100.0, triggerPrice1: nil, quantity1: 10
+      #   => Adds failure message "price1, triggerPrice1, and quantity1 are required for OCO orders".
+      #
+      # @param orderFlag [String] The type of order.
+      # @param price1 [Float] The secondary price for OCO orders.
+      # @param triggerPrice1 [Float] The secondary trigger price for OCO orders.
+      # @param quantity1 [Integer] The secondary quantity for OCO orders.
+      rule(:orderFlag, :price1, :triggerPrice1, :quantity1) do
+        if values[:orderFlag] == "OCO" && !(values[:price1] && values[:triggerPrice1] && values[:quantity1])
+          key.failure("price1, triggerPrice1, and quantity1 are required for OCO orders")
+        end
+      end
+
+      # Custom validation to ensure triggerPrice1 < price1 for OCO orders.
+      #
+      # @example Invalid OCO order:
+      #   orderFlag: "OCO", price1: 120.0, triggerPrice1: 130.0
+      #   => Adds failure message "triggerPrice1 must be less than price1 for OCO orders".
+      #
+      # @param price1 [Float] The secondary price for OCO orders.
+      # @param triggerPrice1 [Float] The secondary trigger price for OCO orders.
+      rule(:price1, :triggerPrice1) do
+        if values[:orderFlag] == "OCO" &&
+           values[:price1] && values[:triggerPrice1] &&
+           values[:triggerPrice1] >= values[:price1]
+          key(:triggerPrice1).failure("must be less than price1 for OCO orders")
+        end
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/contracts/place_order_contract.rb
+# frozen_string_literal: true
+
+module Dhanhq
+  module Contracts
+    # Validation contract for placing an order via Dhanhq's API.
+    #
+    # This contract validates the parameters required to place an order,
+    # ensuring the correctness of inputs based on API requirements. It includes:
+    # - Mandatory fields for order placement.
+    # - Conditional validation for optional fields based on provided values.
+    # - Validation of enumerated values using constants for consistency.
+    #
+    # Example usage:
+    #   contract = Dhanhq::Contracts::PlaceOrderContract.new
+    #   result = contract.call(
+    #     dhanClientId: "123456",
+    #     transactionType: "BUY",
+    #     exchangeSegment: "NSE_EQ",
+    #     productType: "CNC",
+    #     orderType: "LIMIT",
+    #     validity: "DAY",
+    #     securityId: "1001",
+    #     quantity: 10,
+    #     price: 150.0
+    #   )
+    #   result.success? # => true or false
+    #
+    # @see https://dhanhq.co/docs/v2/ Dhanhq API Documentation
+    class PlaceOrderContract < BaseContract
+      # Parameters and validation rules for the place order request.
+      #
+      # @!attribute [r] correlationId
+      #   @return [String] Optional. Identifier for tracking, max length 25 characters.
+      # @!attribute [r] transactionType
+      #   @return [String] Required. BUY or SELL.
+      # @!attribute [r] exchangeSegment
+      #   @return [String] Required. Exchange segment for the order.
+      #     Must be one of: `EXCHANGE_SEGMENTS`.
+      # @!attribute [r] productType
+      #   @return [String] Required. Product type for the order.
+      #     Must be one of: `PRODUCT_TYPES`.
+      # @!attribute [r] orderType
+      #   @return [String] Required. Type of order.
+      #     Must be one of: `ORDER_TYPES`.
+      # @!attribute [r] validity
+      #   @return [String] Required. Validity of the order.
+      #     Must be one of: DAY, IOC.
+      # @!attribute [r] tradingSymbol
+      #   @return [String] Optional. Trading symbol of the instrument.
+      # @!attribute [r] securityId
+      #   @return [String] Required. Security identifier for the order.
+      # @!attribute [r] quantity
+      #   @return [Integer] Required. Quantity of the order, must be greater than 0.
+      # @!attribute [r] disclosedQuantity
+      #   @return [Integer] Optional. Disclosed quantity, must be >= 0 if provided.
+      # @!attribute [r] price
+      #   @return [Float] Optional. Price for the order, must be > 0 if provided.
+      # @!attribute [r] triggerPrice
+      #   @return [Float] Optional. Trigger price for stop-loss orders, must be > 0 if provided.
+      # @!attribute [r] afterMarketOrder
+      #   @return [Boolean] Optional. Indicates if this is an after-market order.
+      # @!attribute [r] amoTime
+      #   @return [String] Optional. Time for after-market orders. Must be one of: OPEN, OPEN_30, OPEN_60.
+      # @!attribute [r] boProfitValue
+      #   @return [Float] Optional. Profit value for Bracket Orders, must be > 0 if provided.
+      # @!attribute [r] boStopLossValue
+      #   @return [Float] Optional. Stop-loss value for Bracket Orders, must be > 0 if provided.
+      # @!attribute [r] drvExpiryDate
+      #   @return [String] Optional. Expiry date for derivative contracts.
+      # @!attribute [r] drvOptionType
+      #   @return [String] Optional. Option type for derivatives, must be one of: CALL, PUT, NA.
+      # @!attribute [r] drvStrikePrice
+      #   @return [Float] Optional. Strike price for options, must be > 0 if provided.
+      params do
+        optional(:correlationId).maybe(:string, max_size?: 25)
+        required(:transactionType).filled(:string, included_in?: TRANSACTION_TYPES)
+        required(:exchangeSegment).filled(:string, included_in?: EXCHANGE_SEGMENTS)
+        required(:productType).filled(:string, included_in?: PRODUCT_TYPES)
+        required(:orderType).filled(:string, included_in?: ORDER_TYPES)
+        required(:validity).filled(:string, included_in?: VALIDITY_TYPES)
+        optional(:tradingSymbol).maybe(:string)
+        required(:securityId).filled(:string)
+        required(:quantity).filled(:integer, gt?: 0)
+        optional(:disclosedQuantity).maybe(:integer, gteq?: 0)
+        optional(:price).maybe(:float, gt?: 0)
+        optional(:triggerPrice).maybe(:float, gt?: 0)
+        optional(:afterMarketOrder).maybe(:bool)
+        optional(:amoTime).maybe(:string, included_in?: %w[OPEN OPEN_30 OPEN_60])
+        optional(:boProfitValue).maybe(:float, gt?: 0)
+        optional(:boStopLossValue).maybe(:float, gt?: 0)
+        optional(:drvExpiryDate).maybe(:string)
+        optional(:drvOptionType).maybe(:string, included_in?: %w[CALL PUT NA])
+        optional(:drvStrikePrice).maybe(:float, gt?: 0)
+      end
+
+      # Custom validation for trigger price when the order type is STOP_LOSS or STOP_LOSS_MARKET.
+      rule(:triggerPrice, :orderType) do
+        if values[:orderType] =~ (/^STOP_LOSS/) && !values[:triggerPrice]
+          key(:triggerPrice).failure("is required for orderType STOP_LOSS or STOP_LOSS_MARKET")
+        end
+      end
+
+      # Custom validation for AMO time when the order is marked as after-market.
+      rule(:afterMarketOrder, :amoTime) do
+        if values[:afterMarketOrder] == true && !values[:amoTime]
+          key(:amoTime).failure("is required when afterMarketOrder is true")
+        end
+      end
+
+      # Custom validation for Bracket Order (BO) fields.
+      rule(:boProfitValue, :boStopLossValue, :productType) do
+        if values[:productType] == "BO" && (!values[:boProfitValue] || !values[:boStopLossValue])
+          key(:boProfitValue).failure("is required for Bracket Orders")
+          key(:boStopLossValue).failure("is required for Bracket Orders")
+        end
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/contracts/slice_order_contract.rb
+# frozen_string_literal: true
+
+module Dhanhq
+  module Contracts
+    # Validation contract for slicing an order into multiple parts for Dhanhq's API.
+    #
+    # This contract ensures all required parameters are provided and optional parameters
+    # meet the required constraints when they are specified. It validates:
+    # - Required fields for slicing orders.
+    # - Conditional logic for fields based on the provided values.
+    # - Constraints such as inclusion, numerical ranges, and string formats.
+    #
+    # Example usage:
+    #   contract = Dhanhq::Contracts::SliceOrderContract.new
+    #   result = contract.call(
+    #     dhanClientId: "123456",
+    #     transactionType: "BUY",
+    #     exchangeSegment: "NSE_EQ",
+    #     productType: "CNC",
+    #     orderType: "LIMIT",
+    #     validity: "DAY",
+    #     securityId: "1001",
+    #     quantity: 10
+    #   )
+    #   result.success? # => true or false
+    #
+    # @see https://dhanhq.co/docs/v2/ Dhanhq API Documentation
+    class SliceOrderContract < BaseContract
+      # Parameters and validation rules for the slicing order request.
+      #
+      # @!attribute [r] correlationId
+      #   @return [String] Optional. Identifier for tracking, max length 25 characters.
+      # @!attribute [r] transactionType
+      #   @return [String] Required. BUY or SELL.
+      # @!attribute [r] exchangeSegment
+      #   @return [String] Required. The segment in which the order is placed.
+      #     Must be one of: NSE_EQ, NSE_FNO, NSE_CURRENCY, BSE_EQ, BSE_FNO, BSE_CURRENCY, MCX_COMM.
+      # @!attribute [r] productType
+      #   @return [String] Required. Product type for the order.
+      #     Must be one of: CNC, INTRADAY, MARGIN, MTF, CO, BO.
+      # @!attribute [r] orderType
+      #   @return [String] Required. Type of order.
+      #     Must be one of: LIMIT, MARKET, STOP_LOSS, STOP_LOSS_MARKET.
+      # @!attribute [r] validity
+      #   @return [String] Required. Validity of the order.
+      #     Must be one of: DAY, IOC, GTC, GTD.
+      # @!attribute [r] securityId
+      #   @return [String] Required. Security identifier for the order.
+      # @!attribute [r] quantity
+      #   @return [Integer] Required. Quantity of the order, must be greater than 0.
+      # @!attribute [r] disclosedQuantity
+      #   @return [Integer] Optional. Disclosed quantity, must be >= 0 if provided.
+      # @!attribute [r] price
+      #   @return [Float] Optional. Price for the order, must be > 0 if provided.
+      # @!attribute [r] triggerPrice
+      #   @return [Float] Optional. Trigger price for stop-loss orders, must be > 0 if provided.
+      # @!attribute [r] afterMarketOrder
+      #   @return [Boolean] Optional. Indicates if this is an after-market order.
+      # @!attribute [r] amoTime
+      #   @return [String] Optional. Time for after-market orders. Must be one of: OPEN, OPEN_30, OPEN_60.
+      # @!attribute [r] boProfitValue
+      #   @return [Float] Optional. Profit value for Bracket Orders, must be > 0 if provided.
+      # @!attribute [r] boStopLossValue
+      #   @return [Float] Optional. Stop-loss value for Bracket Orders, must be > 0 if provided.
+      # @!attribute [r] drvExpiryDate
+      #   @return [String] Optional. Expiry date for derivative contracts.
+      # @!attribute [r] drvOptionType
+      #   @return [String] Optional. Option type for derivatives, must be one of: CALL, PUT, NA.
+      # @!attribute [r] drvStrikePrice
+      #   @return [Float] Optional. Strike price for options, must be > 0 if provided.
+      params do
+        optional(:correlationId).maybe(:string, max_size?: 25)
+        required(:transactionType).filled(:string, included_in?: %w[BUY SELL])
+        required(:exchangeSegment).filled(:string,
+                                          included_in?: %w[NSE_EQ NSE_FNO NSE_CURRENCY BSE_EQ BSE_FNO BSE_CURRENCY
+                                                           MCX_COMM])
+        required(:productType).filled(:string, included_in?: %w[CNC INTRADAY MARGIN MTF CO BO])
+        required(:orderType).filled(:string, included_in?: %w[LIMIT MARKET STOP_LOSS STOP_LOSS_MARKET])
+        required(:validity).filled(:string, included_in?: %w[DAY IOC GTC GTD])
+        required(:securityId).filled(:string)
+        required(:quantity).filled(:integer, gt?: 0)
+        optional(:disclosedQuantity).maybe(:integer, gteq?: 0)
+        optional(:price).maybe(:float, gt?: 0)
+        optional(:triggerPrice).maybe(:float, gt?: 0)
+        optional(:afterMarketOrder).maybe(:bool)
+        optional(:amoTime).maybe(:string, included_in?: %w[OPEN OPEN_30 OPEN_60])
+        optional(:boProfitValue).maybe(:float, gt?: 0)
+        optional(:boStopLossValue).maybe(:float, gt?: 0)
+        optional(:drvExpiryDate).maybe(:string)
+        optional(:drvOptionType).maybe(:string, included_in?: %w[CALL PUT NA])
+        optional(:drvStrikePrice).maybe(:float, gt?: 0)
+      end
+
+      # Custom validation for trigger price when the order type is STOP_LOSS or STOP_LOSS_MARKET.
+      rule(:triggerPrice, :orderType) do
+        if values[:orderType].start_with?("STOP_LOSS") && !values[:triggerPrice]
+          key(:triggerPrice).failure("is required for orderType STOP_LOSS or STOP_LOSS_MARKET")
+        end
+      end
+
+      # Custom validation for AMO time when the order is marked as after-market.
+      rule(:afterMarketOrder, :amoTime) do
+        if values[:afterMarketOrder] == true && !values[:amoTime]
+          key(:amoTime).failure("is required when afterMarketOrder is true")
+        end
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/error.rb
+# frozen_string_literal: true
+
+module Dhanhq
+  class Error < StandardError; end
+end
+
+
+# File: lib/dhanhq/parsers/binary_parser.rb
+# frozen_string_literal: true
+
+# lib/dhanhq/parsers/binary_parser.rb
+
+require "bindata"
+
+module Dhanhq
+  module Parsers
+    class BinaryParser
+      HEADER_SIZE = 8
+
+      def initialize(data)
+        @data = data
+      end
+
+      def parse
+        header = parse_header
+        case header[:feed_response_code]
+        when 2 then parse_ticker(header)
+        when 4 then parse_quote(header)
+        when 8 then parse_full_packet(header)
+        else
+          { error: "Unknown feed response code: #{header[:feed_response_code]}" }
+        end
+      end
+
+      private
+
+      def parse_header
+        BinData::Struct.new(
+          feed_response_code: :uint8,
+          message_length: :uint16,
+          exchange_segment: :uint8,
+          security_id: :uint32
+        ).read(@data[0...HEADER_SIZE])
+      end
+
+      def parse_ticker(header)
+        BinData::Struct.new(
+          last_traded_price: :float,
+          last_trade_time: :uint32
+        ).read(@data[HEADER_SIZE..])
+                       .merge(header)
+      end
+
+      def parse_quote(header)
+        BinData::Struct.new(
+          last_traded_price: :float,
+          last_traded_quantity: :uint16,
+          last_trade_time: :uint32,
+          average_trade_price: :float,
+          volume: :uint32,
+          total_sell_quantity: :uint32,
+          total_buy_quantity: :uint32,
+          day_open_value: :float,
+          day_close_value: :float,
+          day_high_value: :float,
+          day_low_value: :float
+        ).read(@data[HEADER_SIZE..])
+                       .merge(header)
+      end
+
+      def parse_full_packet(header)
+        BinData::Struct.new(
+          last_traded_price: :float,
+          last_traded_quantity: :uint16,
+          last_trade_time: :uint32,
+          average_trade_price: :float,
+          volume: :uint32,
+          total_sell_quantity: :uint32,
+          total_buy_quantity: :uint32,
+          open_interest: :uint32,
+          highest_open_interest: :uint32,
+          lowest_open_interest: :uint32,
+          day_open_value: :float,
+          day_close_value: :float,
+          day_high_value: :float,
+          day_low_value: :float
+        ).read(@data[HEADER_SIZE..])
+                       .merge(header)
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq/version.rb
+# frozen_string_literal: true
+
+module Dhanhq
+  VERSION = "0.1.0"
+end
+
+
+# File: lib/dhanhq/websockets/live_market_feed.rb
+# frozen_string_literal: true
+
+# lib/dhanhq/websockets/live_market_feed.rb
+
+require "websocket/driver"
+require "socket"
+require "json"
+require "bindata"
+
+module Dhanhq
+  module Websockets
+    class LiveMarketFeed
+      MARKET_FEED_URL = "wss://api-feed.dhan.co"
+
+      attr_reader :client_id, :access_token, :subscribed_instruments, :url
+
+      def initialize
+        @client_id = Dhanhq.configuration.client_id
+        @access_token = Dhanhq.configuration.access_token
+        @subscribed_instruments = []
+        @socket = nil
+        @driver = nil
+        @url = market_feed_url
+      end
+
+      def connect
+        uri = URI.parse(url)
+        @socket = TCPSocket.new(uri.host, uri.port)
+        @driver = WebSocket::Driver.client(self)
+
+        setup_callbacks
+        @driver.start
+
+        Thread.new { listen_socket }
+        start_ping_pong
+
+        puts "Market feed connection established."
+      end
+
+      def subscribe(instruments)
+        instruments.each_slice(100) do |batch|
+          send_message(
+            RequestCode: 15,
+            InstrumentCount: batch.size,
+            InstrumentList: batch.map do |inst|
+              { ExchangeSegment: inst[:exchange_segment], SecurityId: inst[:security_id] }
+            end
+          )
+        end
+        @subscribed_instruments.concat(instruments)
+      end
+
+      def unsubscribe(instruments)
+        instruments.each_slice(100) do |batch|
+          send_message(
+            RequestCode: 16,
+            InstrumentCount: batch.size,
+            InstrumentList: batch.map do |inst|
+              { ExchangeSegment: inst[:exchange_segment], SecurityId: inst[:security_id] }
+            end
+          )
+        end
+        @subscribed_instruments -= instruments
+      end
+
+      def disconnect
+        send_message(RequestCode: 16) # Unsubscribe all
+        @socket.close
+        puts "Connection closed!"
+      end
+
+      # Required by WebSocket::Driver
+      def write(data)
+        @socket.write(data)
+      end
+
+      private
+
+      def market_feed_url
+        "#{MARKET_FEED_URL}?version=2&token=#{@access_token}&clientId=#{@client_id}&authType=2"
+      end
+
+      def setup_callbacks
+        @driver.on(:message) { |msg| handle_message(msg.data) }
+        @driver.on(:ping) { @driver.pong }
+        @driver.on(:close) { puts "Connection closed by server." }
+        @driver.on(:error) { |e| puts "Error: #{e.message}" }
+      end
+
+      def listen_socket
+        while (data = @socket.readpartial(1024))
+          @driver.parse(data)
+        end
+      rescue EOFError
+        puts "Socket closed by server."
+      end
+
+      def send_message(message)
+        pp message.to_json
+        @driver.text(message.to_json)
+      end
+
+      def handle_message(data)
+        parsed_data = BinaryParser.new(data).parse
+        puts "Parsed Data: #{parsed_data.inspect}"
+      end
+
+      def start_ping_pong
+        Thread.new do
+          loop do
+            sleep 10
+            @driver.ping("Ping")
+          end
+        end
+      end
+    end
+  end
+end
+
+
+# File: lib/dhanhq.rb
+# frozen_string_literal: true
+
+require_relative "dhanhq/version"
+require "dhanhq/constants"
+require "dhanhq/client"
+require "dhanhq/configuration"
+require "dhanhq/error"
+
+require "dhanhq/api/base"
+require "dhanhq/api/statements"
+
+# Trading APIs
+require "dhanhq/api/orders"
+require "dhanhq/api/funds"
+require "dhanhq/api/portfolio"
+require "dhanhq/api/market_feed"
+require "dhanhq/api/historical"
+require "dhanhq/api/option"
+
+require "dhanhq/contracts/base_contract"
+require "dhanhq/parsers/binary_parser"
+
+# Websockets
+require "dhanhq/websockets/live_market_feed"
+
+# Dhanhq is a Ruby gem for interacting with the Dhanhq Trading API.
+#
+# @see Dhanhq::API for API interaction methods
+module Dhanhq
+  class << self
+    attr_accessor :configuration
+
+    def configure
+      self.configuration ||= Configuration.new
+      yield(configuration)
+    end
+  end
+end
+
+
+# File: spec/dhanhq_spec.rb
+# frozen_string_literal: true
+
+RSpec.describe Dhanhq do
+  it "has a version number" do
+    expect(Dhanhq::VERSION).not_to be_nil
+  end
+
+  it "allows configuration" do
+    described_class.configure do |config|
+      config.access_token = "test_token"
+      config.client_id = "test_client_id"
+    end
+
+    expect(Dhanhq::Config.access_token).to eq("test_token")
+    expect(Dhanhq::Config.client_id).to eq("test_client_id")
+  end
+
+  it "resets configuration" do
+    described_class.configure do |config|
+      config.access_token = "test_token"
+      config.client_id = "test_client_id"
+    end
+
+    Dhanhq::Config.reset
+
+    expect(Dhanhq::Config.access_token).to be_nil
+    expect(Dhanhq::Config.client_id).to be_nil
+  end
+end
+
+
+# File: spec/spec_helper.rb
+# frozen_string_literal: true
+
+require "dhanhq"
+
+RSpec.configure do |config|
+  # Enable flags like --only-failures and --next-failure
+  config.example_status_persistence_file_path = ".rspec_status"
+
+  # Disable RSpec exposing methods globally on `Module` and `main`
+  config.disable_monkey_patching!
+
+  config.expect_with :rspec do |c|
+    c.syntax = :expect
+  end
+end
+
+

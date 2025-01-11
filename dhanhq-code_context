@@ -1646,7 +1646,7 @@ module Dhanhq
     #   )
     #   result.success? # => true or false
     class MarketQuoteContract < BaseContract
-      EXCHANGE_SEGMENTS = %w[NSE_EQ NSE_FNO BSE_EQ BSE_FNO MCX].freeze
+      EXCHANGE_SEGMENTS = %w[IDX_I NSE_EQ NSE_FNO BSE_EQ BSE_FNO].freeze
 
       # Parameters and validation rules for the Market Quote request.
       params do

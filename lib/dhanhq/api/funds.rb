@@ -56,7 +56,7 @@ module Dhanhq
         #   })
         def margin_calculator(params)
           validated_params = validate_with(Dhanhq::Contracts::MarginCalculatorContract, params)
-          post("/margincalculator", validated_params)
+          post("/v2/margincalculator", validated_params)
         end
 
         # Retrieves trading account fund information.

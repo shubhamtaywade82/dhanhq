@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require_relative "../contracts/historical_ohlc_contract"
+require_relative "../contracts/intraday_ohlc_contract"
+
 module Dhanhq
   module API
     # Provides methods to retrieve historical data via Dhanhq's API.
@@ -50,7 +53,8 @@ module Dhanhq
         #     toDate: "2023-12-31"
         #   })
         def daily(params)
-          post("/charts/historical", params)
+          validated_params = validate_with(Dhanhq::Contracts::HistoricalOHLCContract, params)
+          post("/v2/charts/historical", validated_params)
         end
 
         # Retrieves intraday historical data.
@@ -75,7 +79,8 @@ module Dhanhq
         #     toDate: "2023-01-01"
         #   })
         def intraday(params)
-          post("/charts/intraday", params)
+          validated_params = validate_with(Dhanhq::Contracts::IntradayOHLCContract, params)
+          post("/v2/charts/intraday", validated_params)
         end
       end
     end

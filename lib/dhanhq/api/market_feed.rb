@@ -52,10 +52,11 @@ module Dhanhq
         # @raise [Dhanhq::Error] If validation fails or the API returns an error.
         def ltp(instruments)
           # Validate the instruments using the MarketQuoteContract
-          validated_params = validate_with(Dhanhq::Contracts::MarketQuoteContract, { data: instruments })
+          # validated_params = validate_with(Dhanhq::Contracts::MarketQuoteContract, { data: instruments })
 
           # Send the API request
-          post("/v2/marketfeed/ltp", validated_params[:data])
+          # post("/v2/marketfeed/ltp", validated_params[:data])
+          post("/v2/marketfeed/ltp", instruments)
         end
 
         # Fetches the Open-High-Low-Close (OHLC) data for the given securities.

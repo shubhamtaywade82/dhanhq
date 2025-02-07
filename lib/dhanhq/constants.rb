@@ -12,6 +12,7 @@ module Dhanhq
       BSE_FNO
       BSE_CURRENCY
       MCX_COMM
+      IDX_I
     ].freeze
 
     PRODUCT_TYPES = %w[

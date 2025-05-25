@@ -16,6 +16,7 @@ require "dhanhq/api/portfolio"
 require "dhanhq/api/market_feed"
 require "dhanhq/api/historical"
 require "dhanhq/api/option"
+require "dhanhq/api/super_orders"
 
 require "dhanhq/contracts/base_contract"
 require "dhanhq/parsers/binary_parser"

@@ -2,6 +2,9 @@
 
 module Dhanhq
   module Constants
+    LIVE_BASE_URL = "https://api.dhan.co/v2"
+    SANDBOX_BASE_URL = "https://sandbox.dhan.co/v2"
+
     TRANSACTION_TYPES = %w[BUY SELL].freeze
 
     EXCHANGE_SEGMENTS = %w[

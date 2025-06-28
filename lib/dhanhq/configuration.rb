@@ -27,6 +27,9 @@ module Dhanhq
 
     attr_accessor :compact_csv_url, :detailed_csv_url
 
+    # Optional: explicit base URL override
+    attr_writer :base_url
+
     # Initializes a new configuration instance with `nil` values for `client_id` and `access_token`.
     #
     # @example Initialize configuration:
@@ -36,8 +39,23 @@ module Dhanhq
     def initialize
       @client_id = nil
       @access_token = nil
+      @base_url = nil
       @compact_csv_url = COMPACT_CSV_URL
       @detailed_csv_url = DETAILED_CSV_URL
+    end
+
+    # Return the resolved base URL
+    def base_url
+      # Priority:
+      # 1. Explicitly set via config
+      return @base_url if @base_url
+
+      # 2. If Rails present and not production, use sandbox
+      if defined?(Rails) && !Rails.env.production?
+        SANDBOX_BASE_URL
+      else
+        LIVE_BASE_URL
+      end
     end
   end
 end

@@ -34,11 +34,11 @@ module Dhanhq
     #
     # @return [Dhanhq::Client] A new client instance configured for API requests.
     def initialize
-      @connection = Faraday.new(url: BASE_URL) do |conn|
-        conn.request :json # Automatically encode request bodies as JSON
-        conn.response :json, content_type: /\bjson$/ # Automatically parse JSON responses
-        conn.response :logger if ENV["DHAN_DEBUG"] # Enable logging if the environment variable is set
-        conn.adapter Faraday.default_adapter # Use Faraday's default HTTP adapter
+      @connection = Faraday.new(url: Dhanhq.configuration.base_url) do |conn|
+        conn.request :json
+        conn.response :json, content_type: /\bjson$/
+        conn.response :logger if ENV["DHAN_DEBUG"]
+        conn.adapter Faraday.default_adapter
       end
     end
 

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require_relative "dhanhq/version"
+
+require "dotenv/load"
 require "dhanhq/constants"
 require "dhanhq/client"
 require "dhanhq/configuration"

@@ -38,6 +38,10 @@ Replace your_access_token and your_client_id with your credentials provided by D
 Usage
 The gem provides methods to interact with the major endpoints of the Dhan API.
 
+## Documentation
+
+For detailed authentication flows, static IP management, and profile validation examples, see the [Authentication Guide](docs/authentication.md).
+
 Orders
 Place a New Order
 
